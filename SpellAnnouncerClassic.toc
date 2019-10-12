@@ -1,7 +1,7 @@
 ## Interface: 11302
 ## Title: |cff336699SpellAnnouncer Classic
 ## Author: Per Ivar Thorrud a.k.a Pit @ Firemaw-EU
-## Version: 0.1
+## Version: 0.1b
 
 Embeds.xml
 
