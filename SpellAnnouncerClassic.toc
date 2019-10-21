@@ -9,3 +9,4 @@ Embeds.xml
 
 Data.lua
 Core.lua
+Options.lua
