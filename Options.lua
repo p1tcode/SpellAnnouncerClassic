@@ -1,7 +1,7 @@
-local options = {
-	name = "SpellAnnouncerClassic",
+SAC.Options = {
+	name = "SpellAnnouncer Classic",
 	handler = SAC,
-	tupe = 'group',
+	type = 'group',
 	args = {
 		msg = {
 			type = 'input',
@@ -12,3 +12,12 @@ local options = {
 		},
 	},
 }
+
+function SAC:SetFunction(info, val)
+	self.message = val
+	SAC:Print(self.message)
+end
+
+function SAC:GetFunction(info)
+	return self.message
+end

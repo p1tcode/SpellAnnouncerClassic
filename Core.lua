@@ -2,7 +2,7 @@
 -- Initialization --
 --------------------
 
-local SAC = LibStub("AceAddon-3.0"):NewAddon("SAC", "AceConsole-3.0", "AceEvent-3.0")
+SAC = LibStub("AceAddon-3.0"):NewAddon("SAC", "AceConsole-3.0", "AceEvent-3.0")
 
 local playerName = UnitName("player")
 local playerGUID = UnitGUID("player")
@@ -17,10 +17,13 @@ function SAC:OnInitialize()
 
 	-- Setup SavedVariables
 	self.db = LibStub("AceDB-3.0"):New("SpellAnnouncerClassicDB")
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("SAC_Options", SAC.Options)
+	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SAC_Options", "SpellAnnouncer Classic")
 	
 	-- Gather spell names based on spellID. This is done because of different languages.
 	SAC:PopulateSpellsLists()
 	SAC:SetDefaultSavedVariables()
+	
 	
 	SAC:Print("Initialized")
 	
@@ -101,14 +104,18 @@ function SAC:SetDefaultSavedVariables()
 end
 
 function SAC:PopulateSpellsLists()
-	for k,v in ipairs(playerAuraList) do
-		local spellname = GetSpellInfo(v)
-		table.insert(namedAuraList, spellname)
+	if not playerAuraList == nil then
+		for k,v in ipairs(playerAuraList) do
+			local spellname = GetSpellInfo(v)
+			table.insert(namedAuraList, spellname)
+		end
 	end
 	
-	for k,v in ipairs(playerTauntsList) do
-		local spellname = GetSpellInfo(v)
-		table.insert(tauntsList, spellname)
+	if not playerTauntsList == nil then
+		for k,v in ipairs(playerTauntsList) do
+			local spellname = GetSpellInfo(v)
+			table.insert(tauntsList, spellname)
+		end
 	end
 end
 
