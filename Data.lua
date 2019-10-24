@@ -2,7 +2,8 @@ Auras =
 {
 	["DRUID"] =
 	{
-		774, --Rejuvination Test
+		774, -- Rejuvination Test
+		5487, -- Bear Form
 	},
 	["HUNTER"] =
 	{
@@ -23,6 +24,7 @@ Auras =
 	["ROGUE"] =
 	{
 		5277, -- Evasion
+		13877, -- Blade Flurry
 	},
 	["SHAMAN"] =
 	{
@@ -39,7 +41,7 @@ Auras =
 	},
 }
 
-Taunts =
+Ressists =
 {
 	["DRUID"] =
 	{
