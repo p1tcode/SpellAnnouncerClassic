@@ -55,15 +55,15 @@ SAC.Options_Auras = {
 		},
 	},
 }
-SAC.Options_Ressists = {
-	name = "Ressists",
+SAC.Options_Resists = {
+	name = "Resists",
 	handler = SAC,
 	type = 'group',
 	args = {
 		description = {
 			order = 0,
 			type = 'description',
-			name = "Options for spells that fail when casted on a target. This includes all forms of ressists.",
+			name = "Options for spells that fail when casted on a target. This includes all forms of resists.",
 		},
 		spacer = {
 			order = 1,
@@ -82,9 +82,9 @@ SAC.Options_Ressists = {
 			order = 10,
 			type = 'select',
 			name = 'Spells',
-			values = SAC.namedRessistList,
+			values = SAC.namedResistList,
 			style = 'radio',
-			set = 'SetRessistOptions',
+			set = 'SetResistOptions',
 			get = 'Get',
 		},
 	},
@@ -96,17 +96,17 @@ function SAC:SetAuraOptions(info, val)
 	self.lastSelectedAura = info["option"]["values"][val]
 end
 
-function SAC:SetRessistOptions(info, val)
+function SAC:SetResistOptions(info, val)
 	self.db.char.options[info[#info]] = val
-	self.lastSelectedRessist = info["option"]["values"][val]
+	self.lastSelectedResist = info["option"]["values"][val]
 end
 
 function SAC:SetAuraToggle(info, val)
 	self.db.char.options[self.lastSelectedAura][info[#info]] = val
 end
 
-function SAC:SetRessistToggle(info, val)
-	self.db.char.options[self.lastSelectedRessist][info[#info]] = val
+function SAC:SetResistToggle(info, val)
+	self.db.char.options[self.lastSelectedResist][info[#info]] = val
 end
 
 function SAC:Set(info, val)
@@ -121,12 +121,12 @@ function SAC:GetAuraToggle(info)
 	return self.db.char.options[self.lastSelectedAura][info[#info]]
 end
 
-function SAC:GetRessistToggle(info)
-	if self.lastSelectedRessist == nil then
-		self.lastSelectedRessist = self.namedAuraList[1]
+function SAC:GetResistToggle(info)
+	if self.lastSelectedResist == nil then
+		self.lastSelectedResist = self.namedAuraList[1]
 	end
 	
-	return self.db.char.options[self.lastSelectedRessist][info[#info]]
+	return self.db.char.options[self.lastSelectedResist][info[#info]]
 end
 
 function SAC:Get(info)

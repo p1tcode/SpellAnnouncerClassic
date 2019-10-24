@@ -41,7 +41,7 @@ Auras =
 	},
 }
 
-Ressists =
+Resists =
 {
 	["DRUID"] =
 	{

@@ -10,8 +10,8 @@ SAC.playerClass = select(2, UnitClass("Player"))
 
 SAC.playerAuraList = Auras[SAC.playerClass]
 SAC.namedAuraList = {}
-SAC.playerRessistList = Ressists[SAC.playerClass]
-SAC.namedRessistList = {}
+SAC.playerResistList = Resists[SAC.playerClass]
+SAC.namedResistList = {}
 
 function SAC:OnInitialize()
 
@@ -34,8 +34,8 @@ function SAC:OnEnable()
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SAC_Options", SAC.Options.name)
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("SAC_Options_Auras", SAC.Options_Auras)
 	self.optionsAurasFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SAC_Options_Auras", SAC.Options_Auras.name, SAC.Options.name)
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("SAC_Options_Ressists", SAC.Options_Ressists)
-	self.optionsRessistsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SAC_Options_Ressists", SAC.Options_Ressists.name, SAC.Options.name)
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("SAC_Options_Resists", SAC.Options_Resists)
+	self.optionsResistsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SAC_Options_Resists", SAC.Options_Resists.name, SAC.Options.name)
 
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	
@@ -85,7 +85,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	
 	if subevent == "SPELL_MISSED" then
 		
-		for _,v in pairs(self.namedRessistList) do
+		for _,v in pairs(self.namedResistList) do
 			if v == spellName then
 				self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
 			end
@@ -120,10 +120,10 @@ function SAC:PopulateSpellsLists()
 		end
 	end
 	
-	if self.playerRessistList ~= nil then
-		for k,v in ipairs(self.playerRessistList) do
+	if self.playerResistList ~= nil then
+		for k,v in ipairs(self.playerResistList) do
 			local spellname = GetSpellInfo(v)
-			table.insert(self.namedRessistList, spellname)
+			table.insert(self.namedResistList, spellname)
 		end
 	end
 end
