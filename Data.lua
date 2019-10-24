@@ -48,6 +48,10 @@ Ressists =
 		6795, -- Growl
 		5209, -- Challenging Roar
 	},
+	["ROGUE"] =
+	{
+		2094, -- Blind
+	},
 	["WARRIOR"] =
 	{
 		355, -- Taunt

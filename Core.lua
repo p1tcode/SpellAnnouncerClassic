@@ -22,7 +22,7 @@ function SAC:OnInitialize()
 	
 	-- Gather spell names based on spellID. This is done because of different languages.
 	self:PopulateSpellsLists()
-	self:SetDefaultSavedVariables()
+	self:InitializeSavedVariables()
 		
 	self:Print("Initialized")
 	
@@ -100,7 +100,7 @@ end
 ---------------
 
 
-function SAC:SetDefaultSavedVariables()
+function SAC:InitializeSavedVariables()
 	
 	if self.db.char.options == nil then
 		self.db.char.options = {}
