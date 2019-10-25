@@ -18,11 +18,8 @@ function SAC:OnInitialize()
 	-- Setup SavedVariables
 	self.db = LibStub("AceDB-3.0"):New("SpellAnnouncerClassicDB")
 	
-	
-	
 	-- Gather spell names based on spellID. This is done because of different languages.
 	self:PopulateSpellsLists()
-	self:InitializeSavedVariables()
 		
 	self:Print("Initialized")
 	
@@ -30,13 +27,7 @@ end
 
 function SAC:OnEnable()
 
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("SAC_Options", SAC.Options)
-	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SAC_Options", SAC.Options.name)
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("SAC_Options_Auras", SAC.Options_Auras)
-	self.optionsAurasFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SAC_Options_Auras", SAC.Options_Auras.name, SAC.Options.name)
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("SAC_Options_Resists", SAC.Options_Resists)
-	self.optionsResistsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SAC_Options_Resists", SAC.Options_Resists.name, SAC.Options.name)
-
+	self:CreateOptions()
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	
 end
@@ -98,19 +89,6 @@ end
 ---------------
 -- Functions --
 ---------------
-
-
-function SAC:InitializeSavedVariables()
-	
-	if self.db.char.options == nil then
-		self.db.char.options = {}
-		for k,v in pairs(self.namedAuraList) do
-			table.insert(self.db.char.options, v)
-			self.db.char.options[v] = {}
-		end
-	end
-	
-end
 
 function SAC:PopulateSpellsLists()
 	if self.playerAuraList ~= nil then
