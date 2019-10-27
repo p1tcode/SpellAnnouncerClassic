@@ -1,7 +1,7 @@
 local config = LibStub("AceConfig-3.0")
 local dialog = LibStub("AceConfigDialog-3.0")
 
-local CHATCHANNELS = { ["RAID"] = "RAID", ["PARTY"] = "PARTY", ["YELL"] = "YELL", ["SAY"] = "SAY", ["NONE"] = "NONE"}
+local CHATCHANNELS = { ["RAID"] = "RAID", ["PARTY"] = "PARTY", ["YELL"] = "YELL", ["SAY"] = "SAY",}
 
 function SAC:CreateOptions()
 	
@@ -20,8 +20,8 @@ function SAC:CreateOptions()
 				name = "Channel",
 				type = 'select',
 				values = CHATCHANNELS,
-				set = 'SetChatChannel',
-				get = 'GetChatChannel',
+				set = 'Set',
+				get = 'Get',
 			},
 			recursiveEnable = {
 				order = 2,
@@ -136,7 +136,7 @@ function SAC:CreateOptions()
 	}
 
 	
-	self:InitializeOptions()
+	self:InitializeDefaultSettings()
 	
 	config:RegisterOptionsTable("SAC_Options", SAC.Options)
 	self.optionsFrame = dialog:AddToBlizOptions("SAC_Options", SAC.Options.name)
@@ -145,18 +145,66 @@ function SAC:CreateOptions()
 end
 
 
-function SAC:InitializeOptions()
+function SAC:InitializeDefaultSettings()
 
 
 	if self.db.char.options == nil then
 		self.db.char.options = {}
 	end
+	
+	if self.db.char.options.recursiveEnable == nil then
+		self.db.char.options.recursiveEnable = true
+	end
+
+	if self.db.char.options.channel == nil then
+		self.db.char.options.channel = "YELL"
+	end
+	
+	if self.db.char.options.auraAllEnable == nil then
+		self.db.char.options.auraAllEnable = true
+	end
+	
+	if self.db.char.options.resistsAllEnable == nil then
+		self.db.char.options.resistsAllEnable = true
+	end
 
 	for k,v in pairs(self.namedAuraList) do
-		self.db.char.options[v] = {}
+		
+		local found = false
+		for x,_ in pairs(self.db.char.options) do
+			if v == x then
+				found = true
+			end
+		end
+		if not found then
+			self.db.char.options[v] = {}
+			self.db.char.options[v].announceStart = true
+			self.db.char.options[v].announceEnd = false
+		end
+		
 	end
+	
 	for k,v in pairs(self.namedResistList) do
-		self.db.char.options[v] = {}
+		
+		local found = false
+		for x,_ in pairs(self.db.char.options) do
+			if v == x then
+				found = true
+			end
+		end
+		if not found then
+			self.db.char.options[v] = {}
+			self.db.char.options[v].resistAnnounceEnabled = true
+		end
+		
+	end
+	
+	if self.db.char.options.auras == nil then
+		self.db.char.options.auras = 1
+	end
+	
+	if self.db.char.options.spells == nil then
+		self.db.char.options.spells = 1
 	end
 	
 end
@@ -173,17 +221,9 @@ end
 
 function SAC:GetAuraList(info)
 
-	-- Default Settings
-	-- Select the first spell in the Aura list.
-	if self.db.char.options[info[#info]] == nil then
-		self.db.char.options[info[#info]] = 1
-	end
-	
-	--print(self.db.char.options[info[#info]], info, info[#info])
-	
-	-- Do the same for the Aura settings.
+	-- Set the correct name for the Aura settings box.
 	if self.Options.args.auraSettings.name == "" then
-		self.Options.args.auraSettings.name = self.namedAuraList[self.db.char.options[info[#info]]] or self.namedAuraList[1]
+		self.Options.args.auraSettings.name = self.namedAuraList[self.db.char.options[info[#info]]] --or self.namedAuraList[1]
 	end
 	
 	return self.db.char.options[info[#info]]
@@ -201,15 +241,9 @@ end
 
 function SAC:GetResistList(info)
 	
-	-- Default Settings
-	-- Select the first spell in the Resist list.
-	if self.db.char.options[info[#info]] == nil then
-		self.db.char.options[info[#info]] = 1
-	end
-	
-	-- Do the same for the Resist settings.
+	-- Set the correct name for the Resist settings box.
 	if self.Options.args.resistSettings.name == "" then
-		self.Options.args.resistSettings.name = self.namedResistList[self.db.char.options[info[#info]]] or self.namedResistList[1]
+		self.Options.args.resistSettings.name = self.namedResistList[self.db.char.options[info[#info]]] --or self.namedResistList[1]
 	end
 	
 	return self.db.char.options[info[#info]]
@@ -225,20 +259,11 @@ end
 
 function SAC:GetAuraToggle(info)
 
-	-- Select first Aura in the Aura list if no aura has been selected before.
+	-- Set the correct last selected aura.
 	if self.lastSelectedAura == nil then
-		self.lastSelectedAura = self.namedAuraList[1]
+		self.lastSelectedAura = self.namedAuraList[self.db.char.options.auras]
 	end
-	
-	-- Default settings
-	if self.db.char.options[self.lastSelectedAura][info[#info]] == nil then
-		if info[#info] == "announceStart" then
-			self.db.char.options[self.lastSelectedAura][info[#info]] = true
-		elseif info[#info] == "announceEnd" then
-			self.db.char.options[self.lastSelectedAura][info[#info]] = false
-		end
-	end
-	
+		
 	return self.db.char.options[self.lastSelectedAura][info[#info]]
 	
 end
@@ -246,7 +271,6 @@ end
 
 function SAC:SetResistToggle(info, val)
 
-	--print(self.lastSelectedResist, info[#info], val)
 	self.db.char.options[self.lastSelectedResist][info[#info]] = val
 	
 end
@@ -254,40 +278,14 @@ end
 
 function SAC:GetResistToggle(info)
 
-	-- Select first Spell in the Resist list if no spell has been selected before.
+	-- Set the correct last selected resist spell.
 	if self.lastSelectedResist == nil then
-		self.lastSelectedResist = self.namedResistList[1]
+		self.lastSelectedResist = self.namedResistList[self.db.char.options.spells]
 	end
 	
-	-- Default settings
-	if self.db.char.options[self.lastSelectedResist][info[#info]] == nil then
-		self.db.char.options[self.lastSelectedResist][info[#info]] = true
-	end
-
 	return self.db.char.options[self.lastSelectedResist][info[#info]]
 	
 end
-
-
-function SAC:SetChatChannel(info, val)
-
-	self.db.char.options[info[#info]] = val
-	
-end
-
-
-function SAC:GetChatChannel(info)
-
-
-	-- Default settings
-	if self.db.char.options[info[#info]] == nil then
-		self.db.char.options[info[#info]] = "YELL"
-	end
-		
-	return self.db.char.options[info[#info]]
-	
-end
-
 
 
 function SAC:Set(info, val)
@@ -298,11 +296,6 @@ end
 
 
 function SAC:Get(info)
-
-	-- Default settings
-	if self.db.char.options[info[#info]] == nil then
-		self.db.char.options[info[#info]] = true
-	end
 		
 	return self.db.char.options[info[#info]]
 	

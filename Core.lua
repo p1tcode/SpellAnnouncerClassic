@@ -43,7 +43,7 @@ end
 ------------
 
 function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
-	
+		
 	-- Assign all the data from current event
 	local timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, 
 	destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, 
@@ -53,37 +53,49 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	if sourceGUID ~= self.playerGUID then
 		return
 	end
-	
-	if subevent == "SPELL_AURA_APPLIED" then
+		
+	-- Only show auras if enabled in options (Enable Auras)
+	if self.db.char.options.auraAllEnable then
+		
+		if subevent == "SPELL_AURA_APPLIED" then
+						
+			for k,v in pairs(self.namedAuraList) do
+				if v == spellName then
+					if self.db.char.options[spellName].announceStart then
+						self:Print("Aura applied:", spellName, destName)
+					end
+				end
+			end
 			
-		for k,v in pairs(self.namedAuraList) do
-			if v == spellName then
-				self:Print("Aura applied:", spellName, destName)
-			end
 		end
 		
-	end
-	
-	if subevent == "SPELL_AURA_REMOVED" then
+		if subevent == "SPELL_AURA_REMOVED" then
+				
+			for _,v in pairs(self.namedAuraList) do
+				if v == spellName then
+					if self.db.char.options[spellName].announceEnd then
+						self:Print("Aura ended:", spellName, destName)
+					end
+				end
+			end
 			
-		for _,v in pairs(self.namedAuraList) do
-			if v == spellName then
-				self:Print("Aura ended:", spellName, destName)
-			end
 		end
 		
 	end
-	
-	if subevent == "SPELL_MISSED" then
-		
-		for _,v in pairs(self.namedResistList) do
-			if v == spellName then
-				self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
+
+	if self.db.char.options.resistsAllEnable then
+		if subevent == "SPELL_MISSED" then
+			
+			for _,v in pairs(self.namedResistList) do
+				if v == spellName then
+					if self.db.char.options[spellName].resistAnnounceEnabled then
+						self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
+					end
+				end
 			end
+		
 		end
-	
 	end
-	
 end
 
 ---------------
