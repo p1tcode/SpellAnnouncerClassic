@@ -21,7 +21,7 @@ function SAC:OnInitialize()
 	-- Gather spell names based on spellID. This is done because of different languages.
 	self:PopulateSpellsLists()
 		
-	self:Print("Initialized")
+	self:Print("Loaded!")
 	
 end
 
