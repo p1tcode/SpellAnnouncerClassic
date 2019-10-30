@@ -1,7 +1,8 @@
 local config = LibStub("AceConfig-3.0")
 local dialog = LibStub("AceConfigDialog-3.0")
 
-local CHATCHANNELS = { ["RAID"] = "RAID", ["PARTY"] = "PARTY", ["YELL"] = "YELL", ["SAY"] = "SAY",}
+local CHATCHANNELS = { ["RAID"] = "RAID", ["PARTY"] = "PARTY", ["YELL"] = "YELL", ["SAY"] = "SAY", ["SYSTEM MESSAGE"] = "SYSTEM MESSAGE", }
+local CHATPARTIES = { ["RAID"] = "RAID", ["PARTY"] = "PARTY", ["SOLO"] = "SOLO", }
 
 function SAC:CreateOptions()
 	
@@ -13,30 +14,76 @@ function SAC:CreateOptions()
 			header = {
 				order = 0,
 				type = 'header',
-				name = "General"
+				name = "General",
 			},
-			channel = {
+			chatParty = {
 				order = 1,
-				name = "Channel",
+				name = "Select a party option:",
+				desc = "Select a party option in the dropdown menu, and then select how you would like to announce when in specified raid/party/solo option.",
 				type = 'select',
-				values = CHATCHANNELS,
+				values = CHATPARTIES,
 				set = 'Set',
 				get = 'Get',
 			},
-			recursiveEnable = {
+			chatChannels = {
 				order = 2,
-				name = "Recursive Channel",
-				desc = "Recursively announce to the next lower channel if your not in your selected Chat channel. Raid -> Party -> Yell",
-				type = 'toggle',
-				set = 'Set',
-				get = 'Get',
+				name = "Then select how to announce:",
+				type = 'group',
+				guiInline = true,
+				args = {
+					chatRaid = {
+						order = 0,
+						type = 'toggle',
+						name = "/raid",
+						disabled = 'ChatRaidDisableCheck',
+						hidden = 'ChatRaidDisableCheck',
+						set = 'SetChatToggle',
+						get = 'GetChatToggle',
+					},
+					chatParty = {
+						order = 1,
+						type = 'toggle',
+						name = "/party",
+						disabled = 'ChatPartyDisableCheck',
+						hidden = 'ChatPartyDisableCheck',
+						set = 'SetChatToggle',
+						get = 'GetChatToggle',
+					},
+					chatYell = {
+						order = 2,
+						type = 'toggle',
+						name = "/yell",
+						set = 'SetChatToggle',
+						get = 'GetChatToggle',
+					},
+					chatSay = {
+						order = 3,
+						type = 'toggle',
+						name = "/say",
+						set = 'SetChatToggle',
+						get = 'GetChatToggle',
+					},
+					chatSystem = {
+						order = 4,
+						type = 'toggle',
+						name = "System Message",
+						set = 'SetChatToggle',
+						get = 'GetChatToggle',
+					},
+				},
+			},
+			
+			spacer0 = {
+				order = 3,
+				type = 'description',
+				name = " ",
 			},
 			
 			-- Aura section in Options menu
 			aurasHeader = {
 				order = 10,
 				type = 'header',
-				name = "Auras"
+				name = "Auras",
 			},
 			auraDescription = {
 				order = 11,
@@ -145,6 +192,7 @@ function SAC:CreateOptions()
 end
 
 
+-- Sets all default settings if not set before.
 function SAC:InitializeDefaultSettings()
 
 
@@ -152,12 +200,20 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options = {}
 	end
 	
-	if self.db.char.options.recursiveEnable == nil then
-		self.db.char.options.recursiveEnable = true
+	if self.db.char.options.chatParty == nil then
+		self.db.char.options.chatParty = "SOLO"
 	end
-
-	if self.db.char.options.channel == nil then
-		self.db.char.options.channel = "YELL"
+	
+	for p in pairs(CHATPARTIES) do
+		if self.db.char.options[p] == nil then
+			self.db.char.options[p] = {}
+			
+			self.db.char.options[p].chatRaid = false
+			self.db.char.options[p].chatParty = false
+			self.db.char.options[p].chatYell = true
+			self.db.char.options[p].chatSay = false
+			self.db.char.options[p].chatSystem = false
+		end
 	end
 	
 	if self.db.char.options.auraAllEnable == nil then
@@ -207,6 +263,24 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.spells = 1
 	end
 	
+end
+
+-- Disables menuoptions based on what party option is selected.
+function SAC:ChatRaidDisableCheck() 
+	if (self.db.char.options.chatParty == "SOLO") or (self.db.char.options.chatParty == "PARTY") then 
+		return true
+	else
+		return false
+	end
+end
+
+-- Disables menuoptions based on what party option is selected.
+function SAC:ChatPartyDisableCheck() 
+	if (self.db.char.options.chatParty == "SOLO") then 
+		return true
+	else
+		return false
+	end
 end
 
 
@@ -286,6 +360,21 @@ function SAC:GetResistToggle(info)
 	return self.db.char.options[self.lastSelectedResist][info[#info]]
 	
 end
+
+
+function SAC:SetChatToggle(info, val)
+
+	self.db.char.options[self.db.char.options.chatParty][info[#info]] = val
+	
+end
+
+
+function SAC:GetChatToggle(info)
+		
+	return self.db.char.options[self.db.char.options.chatParty][info[#info]]
+	
+end
+
 
 
 function SAC:Set(info, val)

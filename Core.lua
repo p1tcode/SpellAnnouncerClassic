@@ -61,8 +61,14 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 						
 			for k,v in pairs(self.namedAuraList) do
 				if v == spellName then
+					-- Check if specific Aura should be announced from options when applied.
 					if self.db.char.options[spellName].announceStart then
-						self:Print("Aura applied:", spellName, destName)
+						--self:Print("Aura applied:", spellName, destName)
+						if destName == sourceName then
+							self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
+						else
+							self:AnnounceSpell(string.format("%s used -%s- on %s", sourceName, spellName, destName))
+						end
 					end
 				end
 			end
@@ -73,8 +79,14 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 				
 			for _,v in pairs(self.namedAuraList) do
 				if v == spellName then
+					-- Check if specific Aura should be announced from options when removed.
 					if self.db.char.options[spellName].announceEnd then
-						self:Print("Aura ended:", spellName, destName)
+						--self:Print("Aura ended:", spellName, destName)
+						if destName == sourceName then
+							self:AnnounceSpell(string.format("%s -%s- faded!", sourceName, spellName))
+						else
+							self:AnnounceSpell(string.format("%s -%s- faded from %s!", sourceName, spellName, destName))
+						end
 					end
 				end
 			end
@@ -88,6 +100,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 			
 			for _,v in pairs(self.namedResistList) do
 				if v == spellName then
+					-- Check if resist should be announced for specific spell.
 					if self.db.char.options[spellName].resistAnnounceEnabled then
 						self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
 					end
@@ -101,6 +114,48 @@ end
 ---------------
 -- Functions --
 ---------------
+
+function SAC:AnnounceSpell(msg)
+	if (not IsInGroup()) and (not IsInRaid()) then
+		for k,v in pairs(self.db.char.options.SOLO) do
+			if v then
+				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
+				local chatType = string.upper(string.gsub(k, "chat", ""))
+				if chatType ~= "SYSTEM" then
+					SendChatMessage(msg, chatType)
+				else
+					SAC:Print(msg)
+				end
+			end
+		end
+	end
+	if (IsInGroup()) and (not IsInRaid()) then
+		for k,v in pairs(self.db.char.options.PARTY) do
+			if v then
+				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
+				local chatType = string.upper(string.gsub(k, "chat", ""))
+				if chatType ~= "SYSTEM" then
+					SendChatMessage(msg, chatType)
+				else
+					SAC:Print(msg)
+				end
+			end
+		end
+	end
+	if (IsInGroup()) and (IsInRaid()) then
+		for k,v in pairs(self.db.char.options.RAID) do
+			if v then
+				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
+				local chatType = string.upper(string.gsub(k, "chat", ""))
+				if chatType ~= "SYSTEM" then
+					SendChatMessage(msg, chatType)
+				else
+					SAC:Print(msg)
+				end
+			end
+		end
+	end
+end
 
 function SAC:PopulateSpellsLists()
 	if self.playerAuraList ~= nil then
