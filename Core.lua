@@ -102,7 +102,8 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 				if v == spellName then
 					-- Check if resist should be announced for specific spell.
 					if self.db.char.options[spellName].resistAnnounceEnabled then
-						self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
+						--self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
+						self:AnnounceSpell(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
 					end
 				end
 			end
