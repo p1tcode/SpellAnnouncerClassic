@@ -140,7 +140,7 @@ function SAC:CreateOptions()
 			resistsHeader = {
 				order = 30,
 				type = 'header',
-				name = "Resits",
+				name = "Resists",
 			},
 			resistsDescription = {
 				order = 31,
