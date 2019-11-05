@@ -2,7 +2,7 @@
 -- Initialization --
 --------------------
 
-SAC = LibStub("AceAddon-3.0"):NewAddon("SAC", "AceConsole-3.0", "AceEvent-3.0")
+SAC = LibStub("AceAddon-3.0"):NewAddon("|cff336699SpellAnnouncer |cffFBB709Classic", "AceConsole-3.0", "AceEvent-3.0")
 
 SAC.playerName = UnitName("player")
 SAC.playerGUID = UnitGUID("player")
@@ -10,8 +10,8 @@ SAC.playerClass = select(2, UnitClass("Player"))
 
 SAC.playerAuraList = Auras[SAC.playerClass]
 SAC.namedAuraList = {}
-SAC.playerResistList = Resists[SAC.playerClass]
-SAC.namedResistList = {}
+SAC.playerSpellsList = Spells[SAC.playerClass]
+SAC.namedSpellsList = {}
 
 function SAC:OnInitialize()
 
@@ -20,8 +20,6 @@ function SAC:OnInitialize()
 	
 	-- Gather spell names based on spellID. This is done because of different languages.
 	self:PopulateSpellsLists()
-		
-	self:Print("Loaded!")
 	
 end
 
@@ -29,6 +27,14 @@ function SAC:OnEnable()
 
 	self:CreateOptions()
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	
+	local name = GetAddOnMetadata("SpellAnnouncerClassic", "Title")
+	local version = GetAddOnMetadata("SpellAnnouncerClassic", "Version")
+	C_Timer.After(3, 
+	function() 
+		self:Print("Version", version, "Created By: Pit @ Firemaw-EU")
+		self:Print("Use /sac or /spellannouncer to access options and please report any bugs or feedback at https://www.curseforge.com/wow/addons/spellannouncer-classic")
+	end)
 	
 end
 
@@ -67,7 +73,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 						if destName == sourceName then
 							self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
 						else
-							self:AnnounceSpell(string.format("%s used -%s- on %s", sourceName, spellName, destName))
+							self:AnnounceSpell(string.format("%s used -%s- --> %s", sourceName, spellName, destName))
 						end
 					end
 				end
@@ -85,7 +91,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 						if destName == sourceName then
 							self:AnnounceSpell(string.format("%s -%s- faded!", sourceName, spellName))
 						else
-							self:AnnounceSpell(string.format("%s -%s- faded from %s!", sourceName, spellName, destName))
+							self:AnnounceSpell(string.format("%s -%s- faded --> %s!", sourceName, spellName, destName))
 						end
 					end
 				end
@@ -95,19 +101,39 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 		
 	end
 
-	if self.db.char.options.resistsAllEnable then
-		if subevent == "SPELL_MISSED" then
+	
+	if self.db.char.options.spellAllEnable then
+		if subevent == "SPELL_CAST_SUCCESS" then
 			
-			for _,v in pairs(self.namedResistList) do
+			--self:Print(spellName)
+			for _,v in pairs(self.namedSpellsList) do
 				if v == spellName then
 					-- Check if resist should be announced for specific spell.
-					if self.db.char.options[spellName].resistAnnounceEnabled then
+					if self.db.char.options[spellName].spellAnnounceEnabled then
 						--self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
-						self:AnnounceSpell(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
+						self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
 					end
 				end
 			end
-		
+			
+		end
+	end
+
+	if self.db.char.options.spellAllEnable then
+		if subevent == "SPELL_MISSED" then
+			if arg15 ~= "ABSORB" then
+				
+				for _,v in pairs(self.namedSpellsList) do
+					if v == spellName then
+						-- Check if resist should be announced for specific spell.
+						if self.db.char.options[spellName].resistAnnounceEnabled then
+							--self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
+							self:AnnounceSpell(string.format("%s: %s failed -%s- --> %s!", arg15, sourceName, spellName, destName))
+						end
+					end
+				end
+				
+			end
 		end
 	end
 end
@@ -166,10 +192,10 @@ function SAC:PopulateSpellsLists()
 		end
 	end
 	
-	if self.playerResistList ~= nil then
-		for k,v in ipairs(self.playerResistList) do
+	if self.playerSpellsList ~= nil then
+		for k,v in ipairs(self.playerSpellsList) do
 			local spellname = GetSpellInfo(v)
-			table.insert(self.namedResistList, spellname)
+			table.insert(self.namedSpellsList, spellname)
 		end
 	end
 end
