@@ -64,10 +64,12 @@ Spells =
 		6795,	-- Growl
 		5209,	-- Challenging Roar
 		9853,	-- Entangling root
+		20748,	-- Rebirth
 	},
 	["HUNTER"] =
 	{
 		5384,	-- Feign Death
+		19801,	-- Tranquilizing Shot
 	},
 	["MAGE"] =
 	{
