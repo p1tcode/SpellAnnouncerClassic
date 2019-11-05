@@ -137,21 +137,21 @@ function SAC:CreateOptions()
 			},
 			
 			-- Resists section in the Options menu
-			resistsHeader = {
+			spellHeader = {
 				order = 30,
 				type = 'header',
-				name = "Resits",
+				name = "Spells",
 			},
-			resistsDescription = {
+			spellDescription = {
 				order = 31,
 				type = 'description',
 				name = "Options for spells that fail when casted on a target. This includes all forms of resists.",
 			},
-			resistsAllEnable = {
+			spellAllEnable = {
 				order = 32,
 				type = 'toggle',
-				name = 'Announce failed spells',
-				desc = 'Enable or disable all announcements connected to an Aura',
+				name = 'Announce spells',
+				desc = 'Enable or disable all announcements connected to a Spell',
 				set = 'Set',
 				get = 'Get',
 			},
@@ -159,23 +159,30 @@ function SAC:CreateOptions()
 				order = 40,
 				type = 'select',
 				name = 'Spells',
-				values = SAC.namedResistList,
+				values = SAC.namedSpellsList,
 				style = 'radio',
-				set = 'SetResistList',
-				get = 'GetResistList',
+				set = 'SetSpellsList',
+				get = 'GetSpellsList',
 			},
-			resistSettings = {
+			spellSettings = {
 				order = 41,
 				name = "",
 				type = 'group',
 				guiInline = true,
 				args = {
+					spellAnnounceEnabled = {
+						order = 0,
+						type = 'toggle',
+						name = "Announce Cast",
+						set = 'SetSpellToggle',
+						get = 'GetSpellToggle',
+					},
 					resistAnnounceEnabled = {
 						order = 0,
 						type = 'toggle',
-						name = "Announce Enabled",
-						set = 'SetResistToggle',
-						get = 'GetResistToggle',
+						name = "Announce Resist",
+						set = 'SetSpellToggle',
+						get = 'GetSpellToggle',
 					},
 				},
 			},
@@ -188,9 +195,20 @@ function SAC:CreateOptions()
 	config:RegisterOptionsTable("SAC_Options", SAC.Options)
 	self.optionsFrame = dialog:AddToBlizOptions("SAC_Options", SAC.Options.name)
 	
+	self:RegisterChatCommand("sac", "OpenOptions")
+	self:RegisterChatCommand("spellannouncer", "OpenOptions")
+	
 	
 end
 
+-- Show the options for SpellAnnouncer Classic by using /sac
+function SAC:OpenOptions(input)
+	if not input or input:trim() == "" then
+		--self:Print("Opening options")
+		InterfaceOptionsFrame_Show()
+		InterfaceOptionsFrame_OpenToCategory("SpellAnnouncer Classic")
+	end
+end
 
 -- Sets all default settings if not set before.
 function SAC:InitializeDefaultSettings()
@@ -220,8 +238,12 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.auraAllEnable = true
 	end
 	
-	if self.db.char.options.resistsAllEnable == nil then
-		self.db.char.options.resistsAllEnable = true
+	if self.db.char.options.resistsAllEnable ~= nil then
+		self.db.char.options.spellAllEnable = self.db.char.options.resistsAllEnable
+	end
+	
+	if self.db.char.options.spellAllEnable == nil then
+		self.db.char.options.spellAllEnable = true
 	end
 
 	for k,v in pairs(self.namedAuraList) do
@@ -240,17 +262,24 @@ function SAC:InitializeDefaultSettings()
 		
 	end
 	
-	for k,v in pairs(self.namedResistList) do
+	for k,v in pairs(self.namedSpellsList) do
 		
 		local found = false
 		for x,_ in pairs(self.db.char.options) do
 			if v == x then
 				found = true
+				
+				if self.db.char.options[v].spellAnnounceEnabled == nil then
+					self.db.char.options[v].spellAnnounceEnabled = true
+				end
+				if self.db.char.options[v].resistAnnounceEnabled == nil then
+					self.db.char.options[v].resistAnnounceEnabled = true
+				end
 			end
 		end
 		if not found then
 			self.db.char.options[v] = {}
-			self.db.char.options[v].resistAnnounceEnabled = true
+			self.db.char.options[v].spellAnnounceEnabled = true
 		end
 		
 	end
@@ -297,27 +326,27 @@ function SAC:GetAuraList(info)
 
 	-- Set the correct name for the Aura settings box.
 	if self.Options.args.auraSettings.name == "" then
-		self.Options.args.auraSettings.name = self.namedAuraList[self.db.char.options[info[#info]]] --or self.namedAuraList[1]
+		self.Options.args.auraSettings.name = self.namedAuraList[self.db.char.options[info[#info]]]
 	end
 	
 	return self.db.char.options[info[#info]]
 	
 end
 
-function SAC:SetResistList(info, val)
+function SAC:SetSpellsList(info, val)
 
 	self.db.char.options[info[#info]] = val
-	self.lastSelectedResist = info["option"]["values"][val]
-	self.Options.args.resistSettings.name = self.lastSelectedResist
+	self.lastSelectedSpell = info["option"]["values"][val]
+	self.Options.args.spellSettings.name = self.lastSelectedSpell
 	
 end
 
 
-function SAC:GetResistList(info)
+function SAC:GetSpellsList(info)
 	
 	-- Set the correct name for the Resist settings box.
-	if self.Options.args.resistSettings.name == "" then
-		self.Options.args.resistSettings.name = self.namedResistList[self.db.char.options[info[#info]]] --or self.namedResistList[1]
+	if self.Options.args.spellSettings.name == "" then
+		self.Options.args.spellSettings.name = self.namedSpellsList[self.db.char.options[info[#info]]]
 	end
 	
 	return self.db.char.options[info[#info]]
@@ -343,21 +372,21 @@ function SAC:GetAuraToggle(info)
 end
 
 
-function SAC:SetResistToggle(info, val)
+function SAC:SetSpellToggle(info, val)
 
-	self.db.char.options[self.lastSelectedResist][info[#info]] = val
+	self.db.char.options[self.lastSelectedSpell][info[#info]] = val
 	
 end
 
 
-function SAC:GetResistToggle(info)
+function SAC:GetSpellToggle(info)
 
-	-- Set the correct last selected resist spell.
-	if self.lastSelectedResist == nil then
-		self.lastSelectedResist = self.namedResistList[self.db.char.options.spells]
+	-- Set the correct last selected spell.
+	if self.lastSelectedSpell == nil then
+		self.lastSelectedSpell = self.namedSpellsList[self.db.char.options.spells]
 	end
 	
-	return self.db.char.options[self.lastSelectedResist][info[#info]]
+	return self.db.char.options[self.lastSelectedSpell][info[#info]]
 	
 end
 
