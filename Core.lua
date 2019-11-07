@@ -8,10 +8,10 @@ SAC.playerName = UnitName("player")
 SAC.playerGUID = UnitGUID("player")
 SAC.playerClass = select(2, UnitClass("Player"))
 
-SAC.playerAuraList = Auras[SAC.playerClass]
-SAC.namedAuraList = {}
-SAC.playerSpellsList = Spells[SAC.playerClass]
-SAC.namedSpellsList = {}
+SAC.classAuraIDs = Auras[SAC.playerClass]
+SAC.aurasList = {}
+SAC.classSpellIDs = Spells[SAC.playerClass]
+SAC.spellsList = {}
 
 function SAC:OnInitialize()
 
@@ -65,7 +65,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 		
 		if subevent == "SPELL_AURA_APPLIED" then
 						
-			for k,v in pairs(self.namedAuraList) do
+			for k,v in pairs(self.aurasList) do
 				if v == spellName then
 					-- Check if specific Aura should be announced from options when applied.
 					if self.db.char.options[spellName].announceStart then
@@ -76,6 +76,13 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 							self:AnnounceSpell(string.format("%s used -%s- --> %s", sourceName, spellName, destName))
 						end
 					end
+					if self.db.char.options[spellName].whisperTarget then
+						if destName ~= sourceName then
+							if UnitIsPlayer(destName) then
+								self:AnnounceSpell(string.format("%s used -%s-on you!", sourceName, spellName), "WHISPER", destName)
+							end
+						end
+					end
 				end
 			end
 			
@@ -83,7 +90,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 		
 		if subevent == "SPELL_AURA_REMOVED" then
 				
-			for _,v in pairs(self.namedAuraList) do
+			for _,v in pairs(self.aurasList) do
 				if v == spellName then
 					-- Check if specific Aura should be announced from options when removed.
 					if self.db.char.options[spellName].announceEnd then
@@ -106,10 +113,14 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 		if subevent == "SPELL_CAST_SUCCESS" then
 			
 			--self:Print(spellName)
-			for _,v in pairs(self.namedSpellsList) do
+			for _,v in pairs(self.spellsList) do
 				if v == spellName then
 					-- Check if resist should be announced for specific spell.
 					if self.db.char.options[spellName].spellAnnounceEnabled then
+						
+						
+						SAC:Print(destFlags)
+						
 						--self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
 						if destName == sourceName then
 							self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
@@ -127,7 +138,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 		if subevent == "SPELL_MISSED" then
 			if arg15 ~= "ABSORB" then
 				
-				for _,v in pairs(self.namedSpellsList) do
+				for _,v in pairs(self.spellsList) do
 					if v == spellName then
 						-- Check if resist should be announced for specific spell.
 						if self.db.char.options[spellName].resistAnnounceEnabled then
@@ -146,7 +157,20 @@ end
 -- Functions --
 ---------------
 
-function SAC:AnnounceSpell(msg)
+function SAC:AnnounceSpell(msg, channelType, channelName)
+
+	-- Whispers
+	if channelType == "WHISPER" then
+		SendChatMessage(msg, channelType, _, channelName)
+		return
+	end
+	-- Channel
+	if channelType == "CHANNEL" then
+		SendChatMessage(msg, channelType, _, channelName)
+		return
+	end
+	
+	-- Solo
 	if (not IsInGroup()) and (not IsInRaid()) then
 		for k,v in pairs(self.db.char.options.SOLO) do
 			if v then
@@ -160,6 +184,7 @@ function SAC:AnnounceSpell(msg)
 			end
 		end
 	end
+	-- Party
 	if (IsInGroup()) and (not IsInRaid()) then
 		for k,v in pairs(self.db.char.options.PARTY) do
 			if v then
@@ -173,6 +198,7 @@ function SAC:AnnounceSpell(msg)
 			end
 		end
 	end
+	-- Raid
 	if (IsInGroup()) and (IsInRaid()) then
 		for k,v in pairs(self.db.char.options.RAID) do
 			if v then
@@ -189,17 +215,18 @@ function SAC:AnnounceSpell(msg)
 end
 
 function SAC:PopulateSpellsLists()
-	if self.playerAuraList ~= nil then
-		for k,v in ipairs(self.playerAuraList) do
+	if self.classAuraIDs ~= nil then
+		for k,v in ipairs(self.classAuraIDs) do
 			local spellname = GetSpellInfo(v)
-			table.insert(self.namedAuraList, spellname)
+			
+			table.insert(self.aurasList, spellname)
 		end
 	end
 	
-	if self.playerSpellsList ~= nil then
-		for k,v in ipairs(self.playerSpellsList) do
+	if self.classSpellIDs ~= nil then
+		for k,v in ipairs(self.classSpellIDs) do
 			local spellname = GetSpellInfo(v)
-			table.insert(self.namedSpellsList, spellname)
+			table.insert(self.spellsList, spellname)
 		end
 	end
 end

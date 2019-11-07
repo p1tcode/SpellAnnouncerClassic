@@ -102,7 +102,7 @@ function SAC:CreateOptions()
 				order = 13,
 				type = 'select',
 				name = 'Auras',
-				values = SAC.namedAuraList,
+				values = SAC.aurasList,
 				style = 'radio',
 				set = 'SetAuraList',
 				get = 'GetAuraList',
@@ -124,6 +124,15 @@ function SAC:CreateOptions()
 						order = 1,
 						type = 'toggle',
 						name = "Announce end",
+						set = 'SetAuraToggle',
+						get = 'GetAuraToggle',
+					},
+					whisperTarget = {
+						order = 1,
+						type = 'toggle',
+						name = "Whisper Target",
+						desc = "When the selected buff is used on a player, inform the player with a whisper. You will not whisper yourself, and only works for players in your party/raid!",
+						disabled = 'WhisperTargetDisableCheck',
 						set = 'SetAuraToggle',
 						get = 'GetAuraToggle',
 					},
@@ -159,7 +168,7 @@ function SAC:CreateOptions()
 				order = 40,
 				type = 'select',
 				name = 'Spells',
-				values = SAC.namedSpellsList,
+				values = SAC.spellsList,
 				style = 'radio',
 				set = 'SetSpellsList',
 				get = 'GetSpellsList',
@@ -246,23 +255,37 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.spellAllEnable = true
 	end
 
-	for k,v in pairs(self.namedAuraList) do
+	for k,v in pairs(self.aurasList) do
 		
 		local found = false
 		for x,_ in pairs(self.db.char.options) do
 			if v == x then
 				found = true
+				if self.db.char.options[v].announceStart == nil then
+					self.db.char.options[v].announceStart = true
+				end
+				if self.db.char.options[v].announceEnd == nil then
+					self.db.char.options[v].announceEnd = true
+				end
+				if self.db.char.options[v].isSelfBuff == nil then
+					self.db.char.options[v].isSelfBuff = SpellIsSelfBuff(select(7, GetSpellInfo(self.classAuraIDs[k])))
+				end
+				if self.db.char.options[v].whisperTarget == nil then
+					self.db.char.options[v].whisperTarget = false
+				end
 			end
 		end
 		if not found then
 			self.db.char.options[v] = {}
 			self.db.char.options[v].announceStart = true
 			self.db.char.options[v].announceEnd = false
+			self.db.char.options[v].isSelfBuff = SpellIsSelfBuff(select(7, GetSpellInfo(self.classAuraIDs[k])))
+			self.db.char.options[v].whisperTarget = false
 		end
 		
 	end
 	
-	for k,v in pairs(self.namedSpellsList) do
+	for k,v in pairs(self.spellsList) do
 		
 		local found = false
 		for x,_ in pairs(self.db.char.options) do
@@ -270,7 +293,7 @@ function SAC:InitializeDefaultSettings()
 				found = true
 				
 				if self.db.char.options[v].spellAnnounceEnabled == nil then
-					self.db.char.options[v].spellAnnounceEnabled = true
+					self.db.char.options[v].spellAnnounceEnabled = false
 				end
 				if self.db.char.options[v].resistAnnounceEnabled == nil then
 					self.db.char.options[v].resistAnnounceEnabled = true
@@ -279,7 +302,8 @@ function SAC:InitializeDefaultSettings()
 		end
 		if not found then
 			self.db.char.options[v] = {}
-			self.db.char.options[v].spellAnnounceEnabled = true
+			self.db.char.options[v].spellAnnounceEnabled = false
+			self.db.char.options[v].resistAnnounceEnabled = true
 		end
 		
 	end
@@ -301,6 +325,10 @@ function SAC:ChatRaidDisableCheck()
 	else
 		return false
 	end
+end
+
+function SAC:WhisperTargetDisableCheck()
+	return self.db.char.options[self.lastSelectedAura].isSelfBuff
 end
 
 -- Disables menuoptions based on what party option is selected.
@@ -326,7 +354,7 @@ function SAC:GetAuraList(info)
 
 	-- Set the correct name for the Aura settings box.
 	if self.Options.args.auraSettings.name == "" then
-		self.Options.args.auraSettings.name = self.namedAuraList[self.db.char.options[info[#info]]]
+		self.Options.args.auraSettings.name = self.aurasList[self.db.char.options[info[#info]]]
 	end
 	
 	return self.db.char.options[info[#info]]
@@ -346,7 +374,7 @@ function SAC:GetSpellsList(info)
 	
 	-- Set the correct name for the Resist settings box.
 	if self.Options.args.spellSettings.name == "" then
-		self.Options.args.spellSettings.name = self.namedSpellsList[self.db.char.options[info[#info]]]
+		self.Options.args.spellSettings.name = self.spellsList[self.db.char.options[info[#info]]]
 	end
 	
 	return self.db.char.options[info[#info]]
@@ -364,7 +392,7 @@ function SAC:GetAuraToggle(info)
 
 	-- Set the correct last selected aura.
 	if self.lastSelectedAura == nil then
-		self.lastSelectedAura = self.namedAuraList[self.db.char.options.auras]
+		self.lastSelectedAura = self.aurasList[self.db.char.options.auras]
 	end
 		
 	return self.db.char.options[self.lastSelectedAura][info[#info]]
@@ -383,7 +411,7 @@ function SAC:GetSpellToggle(info)
 
 	-- Set the correct last selected spell.
 	if self.lastSelectedSpell == nil then
-		self.lastSelectedSpell = self.namedSpellsList[self.db.char.options.spells]
+		self.lastSelectedSpell = self.spellsList[self.db.char.options.spells]
 	end
 	
 	return self.db.char.options[self.lastSelectedSpell][info[#info]]
