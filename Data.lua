@@ -3,7 +3,7 @@ Auras =
 	["DRUID"] =
 	{
 		--774, 	-- Rejuvination Test
-		--5487, -- Bear Form Test
+		--5487,	-- Bear Form Test
 		29166, 	-- Innervate
 		5229, 	-- Enrage
 		22896,	-- Frenzied Regeneration
@@ -65,6 +65,8 @@ Spells =
 		5209,	-- Challenging Roar
 		9853,	-- Entangling root
 		20748,	-- Rebirth
+		8921,	-- Moonfire Test
+		5211,	-- Bash
 	},
 	["HUNTER"] =
 	{
