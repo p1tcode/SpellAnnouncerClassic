@@ -61,11 +61,12 @@ Spells =
 {
 	["DRUID"] =
 	{
+		8921,	-- Moonfire Test
+		
 		6795,	-- Growl
 		5209,	-- Challenging Roar
 		9853,	-- Entangling root
 		20748,	-- Rebirth
-		8921,	-- Moonfire Test
 		5211,	-- Bash
 	},
 	["HUNTER"] =
