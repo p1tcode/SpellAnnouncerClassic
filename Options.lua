@@ -213,7 +213,6 @@ end
 -- Show the options for SpellAnnouncer Classic by using /sac
 function SAC:OpenOptions(input)
 	if not input or input:trim() == "" then
-		--self:Print("Opening options")
 		InterfaceOptionsFrame_Show()
 		InterfaceOptionsFrame_OpenToCategory("SpellAnnouncer Classic")
 	end

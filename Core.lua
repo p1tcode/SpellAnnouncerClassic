@@ -69,11 +69,13 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 				if v == spellName then
 					-- Check if specific Aura should be announced from options when applied.
 					if self.db.char.options[spellName].announceStart then
-						--self:Print("Aura applied:", spellName, destName)
+						
+						local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+						
 						if destName == sourceName then
 							self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
 						else
-							self:AnnounceSpell(string.format("%s used -%s- --> %s", sourceName, spellName, destName))
+							self:AnnounceSpell(string.format("%s used -%s- -->%s%s", sourceName, spellName, icon, destName))
 						end
 					end
 					if self.db.char.options[spellName].whisperTarget then
@@ -94,11 +96,14 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 				if v == spellName then
 					-- Check if specific Aura should be announced from options when removed.
 					if self.db.char.options[spellName].announceEnd then
+					
+						local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+						
 						--self:Print("Aura ended:", spellName, destName)
 						if destName == sourceName then
 							self:AnnounceSpell(string.format("%s -%s- faded!", sourceName, spellName))
 						else
-							self:AnnounceSpell(string.format("%s -%s- faded --> %s!", sourceName, spellName, destName))
+							self:AnnounceSpell(string.format("%s -%s- faded --> %s%s!", sourceName, spellName, icon, destName))
 						end
 					end
 				end
@@ -118,16 +123,14 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 					-- Check if resist should be announced for specific spell.
 					if self.db.char.options[spellName].spellAnnounceEnabled then
 						
+						local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 						
-						SAC:Print(destFlags)
-						
-						--self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
 						if destName == sourceName then
 							self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
 						else
-							self:AnnounceSpell(string.format("%s used -%s- --> %s", sourceName, spellName, destName))
+							self:AnnounceSpell(string.format("%s used -%s- --> %s%s", sourceName, spellName, icon, destName))
 						end
-					end
+					end					
 				end
 			end
 			
@@ -142,8 +145,10 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 					if v == spellName then
 						-- Check if resist should be announced for specific spell.
 						if self.db.char.options[spellName].resistAnnounceEnabled then
-							--self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
-							self:AnnounceSpell(string.format("%s: %s failed -%s- --> %s!", arg15, sourceName, spellName, destName))
+						
+							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+							
+							self:AnnounceSpell(string.format("%s: %s failed -%s- --> %s%s!", arg15, sourceName, spellName, icon, destName))
 						end
 					end
 				end
@@ -179,7 +184,8 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 				if chatType ~= "SYSTEM" then
 					SendChatMessage(msg, chatType)
 				else
-					SAC:Print(msg)
+					local sysMsg = string.gsub(msg, "{RT%w}", "")
+					SAC:Print(sysMsg)
 				end
 			end
 		end
@@ -193,7 +199,8 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 				if chatType ~= "SYSTEM" then
 					SendChatMessage(msg, chatType)
 				else
-					SAC:Print(msg)
+					local sysMsg = string.gsub(msg, "{RT%w}", "")
+					SAC:Print(sysMsg)
 				end
 			end
 		end
@@ -207,7 +214,8 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 				if chatType ~= "SYSTEM" then
 					SendChatMessage(msg, chatType)
 				else
-					SAC:Print(msg)
+					local sysMsg = string.gsub(msg, "{RT%w}", "")
+					SAC:Print(sysMsg)
 				end
 			end
 		end
@@ -230,3 +238,18 @@ function SAC:PopulateSpellsLists()
 		end
 	end
 end
+
+
+-----------
+-- Enums --
+-----------
+raidIcons = {
+	[COMBATLOG_OBJECT_RAIDTARGET1] = "{RT1}",
+	[COMBATLOG_OBJECT_RAIDTARGET2] = "{RT2}",
+	[COMBATLOG_OBJECT_RAIDTARGET3] = "{RT3}",
+	[COMBATLOG_OBJECT_RAIDTARGET4] = "{RT4}",
+	[COMBATLOG_OBJECT_RAIDTARGET5] = "{RT5}",
+	[COMBATLOG_OBJECT_RAIDTARGET6] = "{RT6}",
+	[COMBATLOG_OBJECT_RAIDTARGET7] = "{RT7}",
+	[COMBATLOG_OBJECT_RAIDTARGET8] = "{RT8}",
+}
