@@ -60,7 +60,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 		return
 	end
 	
-	SAC:Print(eventName, subevent, spellName)
+	--SAC:Print(eventName, subevent, spellName, sourceName)
 	
 	-- Only show auras if enabled in options (Enable Auras)
 	if self.db.char.options.auraAllEnable then
