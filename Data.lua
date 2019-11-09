@@ -61,7 +61,7 @@ Spells =
 {
 	["DRUID"] =
 	{
-		8921,	-- Moonfire Test
+		--8921,	-- Moonfire Test
 		
 		6795,	-- Growl
 		5209,	-- Challenging Roar

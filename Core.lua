@@ -69,7 +69,6 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 				if v == spellName then
 					-- Check if specific Aura should be announced from options when applied.
 					if self.db.char.options[spellName].announceStart then
-						--self:Print("Aura applied:", spellName, destName)
 						
 						local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 						
@@ -126,7 +125,6 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 						
 						local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 						
-						--self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
 						if destName == sourceName then
 							self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
 						else
@@ -150,7 +148,6 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 						
 							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 							
-							--self:Print(string.format("%s: %s Failed %s - Target: %s!", arg15, sourceName, spellName, destName))
 							self:AnnounceSpell(string.format("%s: %s failed -%s- --> %s%s!", arg15, sourceName, spellName, icon, destName))
 						end
 					end
