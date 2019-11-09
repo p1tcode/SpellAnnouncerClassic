@@ -59,7 +59,9 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	if sourceGUID ~= self.playerGUID then
 		return
 	end
-		
+	
+	SAC:Print(eventName, subevent, spellName)
+	
 	-- Only show auras if enabled in options (Enable Auras)
 	if self.db.char.options.auraAllEnable then
 		
@@ -125,7 +127,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 						
 						local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 						
-						if destName == sourceName then
+						if destName == sourceName or destName == nil then
 							self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
 						else
 							self:AnnounceSpell(string.format("%s used -%s- --> %s%s", sourceName, spellName, icon, destName))
