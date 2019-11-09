@@ -62,7 +62,7 @@ Spells =
 	["DRUID"] =
 	{
 		--8921,	-- Moonfire Test
-		
+		9898, 	-- Demoralizing Roar
 		6795,	-- Growl
 		5209,	-- Challenging Roar
 		9853,	-- Entangling root
