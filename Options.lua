@@ -128,7 +128,7 @@ function SAC:CreateOptions()
 						get = 'GetAuraToggle',
 					},
 					whisperTarget = {
-						order = 1,
+						order = 2,
 						type = 'toggle',
 						name = "Whisper Target",
 						desc = "When the selected buff is used on a player, inform the player with a whisper. You will not whisper yourself, and only works for players in your party/raid!",
@@ -145,7 +145,7 @@ function SAC:CreateOptions()
 				name = " ",
 			},
 			
-			-- Resists section in the Options menu
+			-- Spells section in the Options menu
 			spellHeader = {
 				order = 30,
 				type = 'header',
@@ -161,6 +161,14 @@ function SAC:CreateOptions()
 				type = 'toggle',
 				name = 'Announce spells',
 				desc = 'Enable or disable all announcements connected to a Spell',
+				set = 'Set',
+				get = 'Get',
+			},
+			successfulInterrupts = {
+				order = 33,
+				type = 'toggle',
+				name = 'Successful interrupts',
+				desc = 'Enable or disable announcement when an enemy spellcast is interrupted successfully.',
 				set = 'Set',
 				get = 'Get',
 			},
@@ -187,7 +195,7 @@ function SAC:CreateOptions()
 						get = 'GetSpellToggle',
 					},
 					resistAnnounceEnabled = {
-						order = 0,
+						order = 1,
 						type = 'toggle',
 						name = "Announce Resist",
 						set = 'SetSpellToggle',
@@ -305,6 +313,10 @@ function SAC:InitializeDefaultSettings()
 			self.db.char.options[v].resistAnnounceEnabled = true
 		end
 		
+	end
+	
+	if self.db.char.options.successfulInterrupts == nil then
+		self.db.char.options.successfulInterrupts = true
 	end
 	
 	if self.db.char.options.auras == nil then

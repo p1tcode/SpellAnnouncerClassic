@@ -56,12 +56,12 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24  = CombatLogGetCurrentEventInfo()
 	
 	-- Only report your own combatlog.
-	if sourceGUID ~= self.playerGUID then
+	if not CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
 		return
 	end
 	
-	--SAC:Print(eventName, subevent, spellName, sourceName)
-	
+	--SAC:Print(eventName, subevent, spellName, spellId, sourceName, " - ", arg16, arg15, destName)
+
 	-- Only show auras if enabled in options (Enable Auras)
 	if self.db.char.options.auraAllEnable then
 		
@@ -156,6 +156,14 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 				end
 				
 			end
+		end
+	end
+	
+	if self.db.char.options.successfulInterrupts then
+		if subevent == "SPELL_INTERRUPT" then
+			local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+			
+			self:AnnounceSpell(string.format("TARGET INTERRUPTED: %s -%s- %s%s --> %s!", sourceName, spellName, icon, destName, arg16))
 		end
 	end
 end
