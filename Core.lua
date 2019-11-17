@@ -12,6 +12,8 @@ SAC.classAuraIDs = Auras[SAC.playerClass]
 SAC.aurasList = {}
 SAC.classSpellIDs = Spells[SAC.playerClass]
 SAC.spellsList = {}
+SAC.pvpSpellIDs = EnemySpells
+SAC.pvpList = {}
 
 function SAC:OnInitialize()
 
@@ -55,115 +57,135 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, 
 	arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24  = CombatLogGetCurrentEventInfo()
 	
-	-- Only report your own combatlog.
-	if not CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
-		return
-	end
-	
 	--SAC:Print(eventName, subevent, spellName, spellId, sourceName, " - ", arg16, arg15, destName)
 
-	-- Only show auras if enabled in options (Enable Auras)
-	if self.db.char.options.auraAllEnable then
+	
+	-- Only report your own combatlog.
+	if CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
 		
-		if subevent == "SPELL_AURA_APPLIED" then
-						
-			for k,v in pairs(self.aurasList) do
-				if v == spellName then
-					-- Check if specific Aura should be announced from options when applied.
-					if self.db.char.options[spellName].announceStart then
-						
-						local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
-						
-						if destName == sourceName then
-							self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
-						else
-							self:AnnounceSpell(string.format("%s used -%s- -->%s%s", sourceName, spellName, icon, destName))
+		-- Only show auras if enabled in options (Enable Auras)
+		if self.db.char.options.auraAllEnable then
+			
+			if subevent == "SPELL_AURA_APPLIED" then
+							
+				for k,v in pairs(self.aurasList) do
+					if v == spellName then
+						-- Check if specific Aura should be announced from options when applied.
+						if self.db.char.options[spellName].announceStart then
+							
+							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+							
+							if destName == sourceName then
+								self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
+							else
+								self:AnnounceSpell(string.format("%s used -%s- --> %s%s", sourceName, spellName, icon, destName))
+							end
 						end
-					end
-					if self.db.char.options[spellName].whisperTarget then
-						if destName ~= sourceName then
-							if UnitIsPlayer(destName) then
-								self:AnnounceSpell(string.format("%s used -%s-on you!", sourceName, spellName), "WHISPER", destName)
+						if self.db.char.options[spellName].whisperTarget then
+							if destName ~= sourceName then
+								if UnitIsPlayer(destName) then
+									self:AnnounceSpell(string.format("%s used -%s-on you!", sourceName, spellName), "WHISPER", destName)
+								end
 							end
 						end
 					end
 				end
+				
 			end
 			
-		end
-		
-		if subevent == "SPELL_AURA_REMOVED" then
-				
-			for _,v in pairs(self.aurasList) do
-				if v == spellName then
-					-- Check if specific Aura should be announced from options when removed.
-					if self.db.char.options[spellName].announceEnd then
+			if subevent == "SPELL_AURA_REMOVED" then
 					
-						local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
-						
-						--self:Print("Aura ended:", spellName, destName)
-						if destName == sourceName then
-							self:AnnounceSpell(string.format("%s -%s- faded!", sourceName, spellName))
-						else
-							self:AnnounceSpell(string.format("%s -%s- faded --> %s%s!", sourceName, spellName, icon, destName))
-						end
-					end
-				end
-			end
-			
-		end
-		
-	end
-
-	
-	if self.db.char.options.spellAllEnable then
-		if subevent == "SPELL_CAST_SUCCESS" then
-			
-			--self:Print(spellName)
-			for _,v in pairs(self.spellsList) do
-				if v == spellName then
-					-- Check if resist should be announced for specific spell.
-					if self.db.char.options[spellName].spellAnnounceEnabled then
-						
-						local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
-						
-						if destName == sourceName or destName == nil then
-							self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
-						else
-							self:AnnounceSpell(string.format("%s used -%s- --> %s%s", sourceName, spellName, icon, destName))
-						end
-					end					
-				end
-			end
-			
-		end
-	end
-
-	if self.db.char.options.spellAllEnable then
-		if subevent == "SPELL_MISSED" then
-			if arg15 ~= "ABSORB" then
-				
-				for _,v in pairs(self.spellsList) do
+				for _,v in pairs(self.aurasList) do
 					if v == spellName then
-						-- Check if resist should be announced for specific spell.
-						if self.db.char.options[spellName].resistAnnounceEnabled then
+						-- Check if specific Aura should be announced from options when removed.
+						if self.db.char.options[spellName].announceEnd then
 						
 							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 							
-							self:AnnounceSpell(string.format("%s: %s failed -%s- --> %s%s!", arg15, sourceName, spellName, icon, destName))
+							--self:Print("Aura ended:", spellName, destName)
+							if destName == sourceName then
+								self:AnnounceSpell(string.format("%s -%s- faded!", sourceName, spellName))
+							else
+								self:AnnounceSpell(string.format("%s -%s- faded --> %s%s!", sourceName, spellName, icon, destName))
+							end
 						end
 					end
 				end
 				
 			end
+			
+		end
+
+		
+		if self.db.char.options.spellAllEnable then
+			if subevent == "SPELL_CAST_SUCCESS" then
+				
+				--self:Print(spellName)
+				for _,v in pairs(self.spellsList) do
+					if v == spellName then
+						-- Check if resist should be announced for specific spell.
+						if self.db.char.options[spellName].spellAnnounceEnabled then
+							
+							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+							
+							if destName == sourceName or destName == nil then
+								self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
+							else
+								self:AnnounceSpell(string.format("%s used -%s- --> %s%s", sourceName, spellName, icon, destName))
+							end
+						end					
+					end
+				end
+				
+			end
+		end
+
+		if self.db.char.options.spellAllEnable then
+			if subevent == "SPELL_MISSED" then
+				if arg15 ~= "ABSORB" then
+					
+					for _,v in pairs(self.spellsList) do
+						if v == spellName then
+							-- Check if resist should be announced for specific spell.
+							if self.db.char.options[spellName].resistAnnounceEnabled then
+							
+								local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+								
+								self:AnnounceSpell(string.format("%s: %s failed -%s- --> %s%s!", arg15, sourceName, spellName, icon, destName))
+							end
+						end
+					end
+					
+				end
+			end
+		end
+		
+		if self.db.char.options.successfulInterrupts then
+			if subevent == "SPELL_INTERRUPT" then
+				local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+				
+				self:AnnounceSpell(string.format("TARGET INTERRUPTED: %s -%s- %s%s --> %s!", sourceName, spellName, icon, destName, arg16))
+			end
 		end
 	end
 	
-	if self.db.char.options.successfulInterrupts then
-		if subevent == "SPELL_INTERRUPT" then
-			local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+	if destName == SAC.playerName then
+	
+		if subevent == "SPELL_CAST_SUCCESS" then
 			
-			self:AnnounceSpell(string.format("TARGET INTERRUPTED: %s -%s- %s%s --> %s!", sourceName, spellName, icon, destName, arg16))
+			--self:Print(spellName)
+			for _,v in pairs(self.pvpList) do
+				if v == spellName then
+					-- Check if resist should be announced for specific spell.
+					if self.db.char.options.pvpSap then
+						
+						local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+						
+						self:AnnounceSpell(string.format("CC!: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+
+					end
+				end
+			end
 		end
 	end
 end
@@ -245,6 +267,13 @@ function SAC:PopulateSpellsLists()
 		for k,v in ipairs(self.classSpellIDs) do
 			local spellname = GetSpellInfo(v)
 			table.insert(self.spellsList, spellname)
+		end
+	end
+	
+	if self.pvpSpellIDs ~= nil then
+		for k,v in ipairs(self.pvpSpellIDs) do
+			local spellname = GetSpellInfo(v)
+			table.insert(self.pvpList, spellname)
 		end
 	end
 end

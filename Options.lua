@@ -203,6 +203,30 @@ function SAC:CreateOptions()
 					},
 				},
 			},
+			spacer2 = {
+				order = 50,
+				type = 'description',
+				name = " ",
+			},
+			
+			-- Spells section in the Options menu
+			pvpHeader = {
+				order = 51,
+				type = 'header',
+				name = "PVP",
+			},
+			pvpDescription = {
+				order = 52,
+				type = 'description',
+				name = "Some announcements for PVP.",
+			},
+			pvpSap = {
+				order = 53,
+				type = 'toggle',
+				name = "Sapped!",
+				set = 'Set',
+				get = 'Get',
+			},
 		},
 	}
 
@@ -317,6 +341,10 @@ function SAC:InitializeDefaultSettings()
 	
 	if self.db.char.options.successfulInterrupts == nil then
 		self.db.char.options.successfulInterrupts = true
+	end
+	
+	if self.db.char.options.pvpSap == nil then
+		self.db.char.options.pvpSap = true
 	end
 	
 	if self.db.char.options.auras == nil then
