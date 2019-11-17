@@ -119,7 +119,6 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 		
 		if self.db.char.options.spellAllEnable then
 			if subevent == "SPELL_CAST_SUCCESS" then
-				
 				--self:Print(spellName)
 				for _,v in pairs(self.spellsList) do
 					if v == spellName then
@@ -136,7 +135,6 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 						end					
 					end
 				end
-				
 			end
 		end
 
