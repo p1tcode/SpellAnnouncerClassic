@@ -35,6 +35,7 @@ Auras =
 		5277,	-- Evasion
 		13877,	-- Blade Flurry
 		11305,	-- Sprint
+		6770,	-- Sap
 	},
 	["SHAMAN"] =
 	{
@@ -119,4 +120,9 @@ Spells =
 		72,		-- Shield Bash
 		5246,	-- Intimidating Shout
 	},
+}
+
+EnemySpells =
+{
+	6770,	-- Sap
 }
