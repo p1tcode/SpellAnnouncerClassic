@@ -126,3 +126,8 @@ EnemySpells =
 {
 	6770,	-- Sap
 }
+EnemyItems =
+{
+	[3387] = 6615,	-- Limited Invulnerability Potion, { Invulnerability }
+	["5634"] = "3169",	-- Free Action Potion, { Free Action }
+}

@@ -11,13 +11,19 @@ function SAC:CreateOptions()
 		handler = SAC,
 		type = 'group',
 		args = {
-			header = {
+			version = {
 				order = 0,
+				type = 'description',
+				fontSize = "medium",
+				name = "Version" .. " " .. SAC.addonVersion .. ", Created by Pit @ Firemaw - EU",
+			},
+			header = {
+				order = 1,
 				type = 'header',
 				name = "General",
 			},
 			chatParty = {
-				order = 1,
+				order = 2,
 				name = "Select a party option:",
 				desc = "Select a party option in the dropdown menu, and then select how you would like to announce when in specified raid/party/solo option.",
 				type = 'select',
@@ -26,7 +32,7 @@ function SAC:CreateOptions()
 				get = 'Get',
 			},
 			chatChannels = {
-				order = 2,
+				order = 3,
 				name = "Then select how to announce:",
 				type = 'group',
 				guiInline = true,
@@ -74,7 +80,7 @@ function SAC:CreateOptions()
 			},
 			
 			spacer0 = {
-				order = 3,
+				order = 9,
 				type = 'description',
 				name = " ",
 			},
@@ -218,14 +224,32 @@ function SAC:CreateOptions()
 			pvpDescription = {
 				order = 52,
 				type = 'description',
-				name = "Some announcements for PVP.",
+				name = "PVP related announcements.",
 			},
-			pvpSap = {
+			pvp = {
 				order = 53,
-				type = 'toggle',
-				name = "Sapped!",
-				set = 'Set',
-				get = 'Get',
+				type = 'select',
+				name = 'PVP Target Spells',
+				values = SAC.pvpAllList,
+				style = 'radio',
+				set = 'SetPvpList',
+				get = 'GetPvpList',
+			},
+			pvpSettings = {
+				order = 54,
+				name = "",
+				type = 'group',
+				guiInline = true,
+				args = {
+					pvpEnable = {
+						order = 0,
+						type = 'toggle',
+						name = "Announce Cast",
+						set = 'SetPvpToggle',
+						get = 'GetPvpToggle',
+					},
+
+				},
 			},
 		},
 	}
@@ -339,14 +363,29 @@ function SAC:InitializeDefaultSettings()
 		
 	end
 	
+	for k,v in pairs(self.pvpAllList) do
+		
+		local found = false
+		for x,_ in pairs(self.db.char.options) do
+			if v == x then
+				found = true
+				
+				if self.db.char.options[v].pvpEnable == nil then
+					self.db.char.options[v].pvpEnable = true
+				end
+			end
+		end
+		if not found then
+			self.db.char.options[v] = {}
+			self.db.char.options[v].pvpEnable = true
+		end
+		
+	end
+	
 	if self.db.char.options.successfulInterrupts == nil then
 		self.db.char.options.successfulInterrupts = true
 	end
-	
-	if self.db.char.options.pvpSap == nil then
-		self.db.char.options.pvpSap = true
-	end
-	
+		
 	if self.db.char.options.auras == nil then
 		self.db.char.options.auras = 1
 	end
@@ -419,6 +458,24 @@ function SAC:GetSpellsList(info)
 	return self.db.char.options[info[#info]]
 end
 
+function SAC:SetPvpList(info, val)
+
+	self.db.char.options[info[#info]] = val
+	self.lastSelectedPvp = info["option"]["values"][val]
+	self.Options.args.pvpSettings.name = self.lastSelectedPvp
+	
+end
+
+
+function SAC:GetPvpList(info)
+	
+	-- Set the correct name for the Resist settings box.
+	if self.Options.args.pvpSettings.name == "" then
+		self.Options.args.pvpSettings.name = self.pvpAllList[self.db.char.options[info[#info]]]
+	end
+	
+	return self.db.char.options[info[#info]]
+end
 
 function SAC:SetAuraToggle(info, val)
 
@@ -454,6 +511,25 @@ function SAC:GetSpellToggle(info)
 	end
 	
 	return self.db.char.options[self.lastSelectedSpell][info[#info]]
+	
+end
+
+
+function SAC:SetPvpToggle(info, val)
+
+	self.db.char.options[self.lastSelectedPvp][info[#info]] = val
+	
+end
+
+
+function SAC:GetPvpToggle(info)
+
+	-- Set the correct last selected spell.
+	if self.lastSelectedPvp == nil then
+		self.lastSelectedPvp = self.pvpAllList[self.db.char.options.pvp]
+	end
+	
+	return self.db.char.options[self.lastSelectedPvp][info[#info]]
 	
 end
 
