@@ -285,7 +285,7 @@ function SAC:PopulateSpellsLists()
 	end
 	
 	if self.pvpItemIDs ~= nil then
-		print(self.pvpItemIDs)
+		print(#self.pvpItemIDs)
 		for k,v in ipairs(self.pvpItemIDs) do
 			print("Item")
 			--local item = GetItemInfo(v)

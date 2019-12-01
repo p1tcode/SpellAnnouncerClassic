@@ -128,6 +128,6 @@ EnemySpells =
 }
 EnemyItems =
 {
-	[3387] = 6615,	-- Limited Invulnerability Potion, { Invulnerability }
-	["5634"] = "3169",	-- Free Action Potion, { Free Action }
+	3387,	-- Limited Invulnerability Potion, { Invulnerability }
+	5634,	-- Free Action Potion, { Free Action }
 }

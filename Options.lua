@@ -254,7 +254,6 @@ function SAC:CreateOptions()
 		},
 	}
 
-	
 	self:InitializeDefaultSettings()
 	
 	config:RegisterOptionsTable("SAC_Options", SAC.Options)
@@ -262,7 +261,6 @@ function SAC:CreateOptions()
 	
 	self:RegisterChatCommand("sac", "OpenOptions")
 	self:RegisterChatCommand("spellannouncer", "OpenOptions")
-	
 	
 end
 
@@ -396,6 +394,7 @@ function SAC:InitializeDefaultSettings()
 	
 end
 
+
 -- Disables menuoptions based on what party option is selected.
 function SAC:ChatRaidDisableCheck() 
 	if (self.db.char.options.chatParty == "SOLO") or (self.db.char.options.chatParty == "PARTY") then 
@@ -405,9 +404,11 @@ function SAC:ChatRaidDisableCheck()
 	end
 end
 
+
 function SAC:WhisperTargetDisableCheck()
 	return self.db.char.options[self.lastSelectedAura].isSelfBuff
 end
+
 
 -- Disables menuoptions based on what party option is selected.
 function SAC:ChatPartyDisableCheck() 
@@ -439,6 +440,7 @@ function SAC:GetAuraList(info)
 	
 end
 
+
 function SAC:SetSpellsList(info, val)
 
 	self.db.char.options[info[#info]] = val
@@ -458,6 +460,7 @@ function SAC:GetSpellsList(info)
 	return self.db.char.options[info[#info]]
 end
 
+
 function SAC:SetPvpList(info, val)
 
 	self.db.char.options[info[#info]] = val
@@ -476,6 +479,7 @@ function SAC:GetPvpList(info)
 	
 	return self.db.char.options[info[#info]]
 end
+
 
 function SAC:SetAuraToggle(info, val)
 
@@ -546,7 +550,6 @@ function SAC:GetChatToggle(info)
 	return self.db.char.options[self.db.char.options.chatParty][info[#info]]
 	
 end
-
 
 
 function SAC:Set(info, val)
