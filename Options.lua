@@ -16,14 +16,23 @@ function SAC:CreateOptions()
 				type = 'description',
 				fontSize = "medium",
 				name = "Version" .. " " .. SAC.addonVersion .. ", Created by Pit @ Firemaw - EU",
+				width = 'double',
+			},
+			welcomeEnable = {
+				order = 1,
+				type = 'toggle',
+				name = 'Welcome Message',
+				desc = 'Enable or disable the welcome message produced by this Addon when launching or reloading WoW.',
+				set = 'Set',
+				get = 'Get',
 			},
 			header = {
-				order = 1,
+				order = 2,
 				type = 'header',
 				name = "General",
 			},
 			chatParty = {
-				order = 2,
+				order = 3,
 				name = "Select a party option:",
 				desc = "Select a party option in the dropdown menu, and then select how you would like to announce when in specified raid/party/solo option.",
 				type = 'select',
@@ -32,7 +41,7 @@ function SAC:CreateOptions()
 				get = 'Get',
 			},
 			chatChannels = {
-				order = 3,
+				order = 4,
 				name = "Then select how to announce:",
 				type = 'group',
 				guiInline = true,
@@ -169,6 +178,7 @@ function SAC:CreateOptions()
 				desc = 'Enable or disable all announcements connected to a Spell',
 				set = 'Set',
 				get = 'Get',
+				width = 'full',
 			},
 			successfulInterrupts = {
 				order = 33,
@@ -177,6 +187,7 @@ function SAC:CreateOptions()
 				desc = 'Enable or disable announcement when an enemy spellcast is interrupted successfully.',
 				set = 'Set',
 				get = 'Get',
+				width = 'full',
 			},
 			spells = {
 				order = 40,
@@ -241,14 +252,13 @@ function SAC:CreateOptions()
 				type = 'group',
 				guiInline = true,
 				args = {
-					pvpEnable = {
+					Enable = {
 						order = 0,
 						type = 'toggle',
-						name = "Announce Cast",
+						name = "Enable",
 						set = 'SetPvpToggle',
 						get = 'GetPvpToggle',
 					},
-
 				},
 			},
 		},
@@ -284,6 +294,10 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.chatParty = "SOLO"
 	end
 	
+	if self.db.char.options.welcomeEnable == nil then
+		self.db.char.options.welcomeEnable = true
+	end
+
 	for p in pairs(CHATPARTIES) do
 		if self.db.char.options[p] == nil then
 			self.db.char.options[p] = {}
@@ -365,17 +379,17 @@ function SAC:InitializeDefaultSettings()
 		
 		local found = false
 		for x,_ in pairs(self.db.char.options) do
-			if v == x then
+			if k == x then
 				found = true
 				
-				if self.db.char.options[v].pvpEnable == nil then
-					self.db.char.options[v].pvpEnable = true
+				if self.db.char.options[v].Enable == nil then
+					self.db.char.options[v].Enable = true
 				end
 			end
 		end
 		if not found then
 			self.db.char.options[v] = {}
-			self.db.char.options[v].pvpEnable = true
+			self.db.char.options[v].Enable = true
 		end
 		
 	end

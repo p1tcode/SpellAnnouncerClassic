@@ -16,9 +16,9 @@ SAC.aurasList = {}
 SAC.classSpellIDs = Spells[SAC.playerClass]
 SAC.spellsList = {}
 SAC.pvpSpellIDs = EnemySpells
-SAC.pvpSpellsList = {}
+SAC.pvpSpellNames = {}
 SAC.pvpItemIDs = EnemyItems
-SAC.pvpItemsList = {}
+SAC.pvpItemNames = {}
 SAC.pvpAllList = {}
 
 function SAC:OnInitialize()
@@ -36,13 +36,18 @@ function SAC:OnEnable()
 	self:CreateOptions()
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	
-	
-	C_Timer.After(3, 
-	function() 
-		self:Print("Version", self.addonVersion, "Created By: Pit @ Firemaw-EU")
-		self:Print("Use /sac or /spellannouncer to access options and please report any bugs or feedback at https://www.curseforge.com/wow/addons/spellannouncer-classic")
-	end)
-	
+	if self.db.char.options.welcomeEnable then
+		C_Timer.After(3, 
+		function() 
+			self:Print("Version", self.addonVersion, "Created By: Pit @ Firemaw-EU")
+			self:Print("Use /sac or /spellannouncer to access options and please report any bugs or feedback at https://www.curseforge.com/wow/addons/spellannouncer-classic")
+		end)
+	end
+
+	for k,v in pairs(self.pvpAllList) do
+		print(k,v)
+	end
+
 end
 
 function SAC:OnDisable()
@@ -179,16 +184,35 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 		if subevent == "SPELL_CAST_SUCCESS" then
 			
 			--self:Print(spellName)
-			for _,v in pairs(self.pvpSpellsList) do
+			for k,v in pairs(self.pvpSpellNames) do
+
 				if v == spellName then
-					-- Check if resist should be announced for specific spell.
-					if self.db.char.options.pvpSap then
-						
+					-- Check if PVP spell should be announced.
+					if self.db.char.options[spellName].Enable then
+
 						local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
-						
-						self:AnnounceSpell(string.format("CC!: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+							
+						self:AnnounceSpell(string.format("PVP!: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
 
 					end
+				end
+			end
+		end
+	end
+
+	if UnitName("target") == sourceName then
+
+		if subevent == "SPELL_CAST_SUCCESS" then
+					
+			--self:Print(spellName)
+			for k,v in pairs(self.pvpItemNames) do
+
+				if k == spellName then
+					-- Check if resist should be announced for specific spell.
+					local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+						
+					self:AnnounceSpell(string.format("PVP!: %s%s -%s-", icon, sourceName, v))
+
 				end
 			end
 		end
@@ -278,19 +302,17 @@ function SAC:PopulateSpellsLists()
 	if self.pvpSpellIDs ~= nil then
 		for k,v in ipairs(self.pvpSpellIDs) do
 			local spell = GetSpellInfo(v)
-			table.insert(self.pvpSpellsList, spell)
-			table.insert(self.pvpAllList, spell)
-			print(spell)
+			table.insert(self.pvpSpellNames, spell)
+			self.pvpAllList[spell] = spell
 		end
 	end
 	
 	if self.pvpItemIDs ~= nil then
-		print(#self.pvpItemIDs)
-		for k,v in ipairs(self.pvpItemIDs) do
-			print("Item")
-			--local item = GetItemInfo(v)
-			--table.insert(self.pvpItemsList, item)
-			--table.insert(self.pvpAllList, item)
+		for k, v in pairs(self.pvpItemIDs) do
+			local itemName = GetItemInfo(k)
+			local spellName = GetSpellInfo(v)
+			self.pvpItemNames[spellName] = itemName
+			self.pvpAllList[spellName] = itemName
 		end
 	end
 end

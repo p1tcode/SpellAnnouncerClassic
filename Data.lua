@@ -35,7 +35,6 @@ Auras =
 		5277,	-- Evasion
 		13877,	-- Blade Flurry
 		11305,	-- Sprint
-		6770,	-- Sap
 	},
 	["SHAMAN"] =
 	{
@@ -99,6 +98,7 @@ Spells =
 		8643,	-- Kidney Shot
 		921,	-- Pick Pocket
 		1769,	-- Kick
+		6770,	-- Sap
 	},
 	["SHAMAN"] =
 	{
@@ -128,6 +128,8 @@ EnemySpells =
 }
 EnemyItems =
 {
-	3387,	-- Limited Invulnerability Potion, { Invulnerability }
-	5634,	-- Free Action Potion, { Free Action }
+	[3387] = 3169,	-- Limited Invulnerability Potion, { Invulnerability }
+	[5634] = 6615, 	-- Free Action Potion, { Free Action }
+	[18639] = 23132, -- Ultra-Flash Shadow Reflector, { Shadow Reflector }
+	
 }
