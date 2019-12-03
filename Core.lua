@@ -4,6 +4,9 @@
 
 SAC = LibStub("AceAddon-3.0"):NewAddon("|cff336699SpellAnnouncer |cffFBB709Classic", "AceConsole-3.0", "AceEvent-3.0")
 
+SAC.addonName = GetAddOnMetadata("SpellAnnouncerClassic", "Title")
+SAC.addonVersion = GetAddOnMetadata("SpellAnnouncerClassic", "Version")
+
 SAC.playerName = UnitName("player")
 SAC.playerGUID = UnitGUID("player")
 SAC.playerClass = select(2, UnitClass("Player"))
@@ -13,31 +16,34 @@ SAC.aurasList = {}
 SAC.classSpellIDs = Spells[SAC.playerClass]
 SAC.spellsList = {}
 SAC.pvpSpellIDs = EnemySpells
-SAC.pvpList = {}
+SAC.pvpSpellNames = {}
+SAC.pvpItemIDs = EnemyItems
+SAC.pvpItemNames = {}
+SAC.pvpAllList = {}
 
 function SAC:OnInitialize()
 
 	-- Setup SavedVariables
 	self.db = LibStub("AceDB-3.0"):New("SpellAnnouncerClassicDB")
-	
-	-- Gather spell names based on spellID. This is done because of different languages.
-	self:PopulateSpellsLists()
-	
+
 end
 
 function SAC:OnEnable()
 
+	-- Gather spell names based on spellID. This is done because of different languages.
+	self:PopulateSpellsLists()
+
 	self:CreateOptions()
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	
-	local name = GetAddOnMetadata("SpellAnnouncerClassic", "Title")
-	local version = GetAddOnMetadata("SpellAnnouncerClassic", "Version")
-	C_Timer.After(3, 
-	function() 
-		self:Print("Version", version, "Created By: Pit @ Firemaw-EU")
-		self:Print("Use /sac or /spellannouncer to access options and please report any bugs or feedback at https://www.curseforge.com/wow/addons/spellannouncer-classic")
-	end)
-	
+	if self.db.char.options.welcomeEnable then
+		C_Timer.After(3, 
+		function() 
+			self:Print("Version", self.addonVersion, "Created By: Pit @ Firemaw-EU")
+			self:Print("Use /sac or /spellannouncer to access options and please report any bugs or feedback at https://www.curseforge.com/wow/addons/spellannouncer-classic")
+		end)
+	end
+
 end
 
 function SAC:OnDisable()
@@ -58,21 +64,21 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24  = CombatLogGetCurrentEventInfo()
 	
 	--SAC:Print(eventName, subevent, spellName, spellId, sourceName, " - ", arg16, arg15, destName)
-
+	--SAC:Print(subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, 
+	--destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, 
+	--arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24)
 	
 	-- Only report your own combatlog.
+	-- Casted Spells and auras
 	if CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
-		
 		-- Only show auras if enabled in options (Enable Auras)
 		if self.db.char.options.auraAllEnable then
-			
-			if subevent == "SPELL_AURA_APPLIED" then
-							
+			if subevent == "SPELL_AURA_APPLIED" then		
 				for k,v in pairs(self.aurasList) do
 					if v == spellName then
 						-- Check if specific Aura should be announced from options when applied.
 						if self.db.char.options[spellName].announceStart then
-							
+
 							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 							
 							if destName == sourceName then
@@ -94,7 +100,6 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 			end
 			
 			if subevent == "SPELL_AURA_REMOVED" then
-					
 				for _,v in pairs(self.aurasList) do
 					if v == spellName then
 						-- Check if specific Aura should be announced from options when removed.
@@ -111,12 +116,9 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 						end
 					end
 				end
-				
 			end
-			
 		end
 
-		
 		if self.db.char.options.spellAllEnable then
 			if subevent == "SPELL_CAST_SUCCESS" then
 				--self:Print(spellName)
@@ -153,7 +155,6 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 							end
 						end
 					end
-					
 				end
 			end
 		end
@@ -162,25 +163,130 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 			if subevent == "SPELL_INTERRUPT" then
 				local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 				
-				self:AnnounceSpell(string.format("TARGET INTERRUPTED: %s -%s- %s%s --> %s!", sourceName, spellName, icon, destName, arg16))
+				self:AnnounceSpell(string.format("INTERRUPT: %s -%s- %s%s --> %s!", sourceName, spellName, icon, destName, arg16))
 			end
 		end
 	end
 	
-	if destName == SAC.playerName then
-	
-		if subevent == "SPELL_CAST_SUCCESS" then
-			
-			--self:Print(spellName)
-			for _,v in pairs(self.pvpList) do
-				if v == spellName then
-					-- Check if resist should be announced for specific spell.
-					if self.db.char.options.pvpSap then
-						
-						local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
-						
-						self:AnnounceSpell(string.format("CC!: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+	-- PVP Related Events
+	if self.db.char.options.pvpAllEnable then
 
+		if self.db.char.options.pvpFriendly == "SELF" then
+			
+			-- Check if an spell is performed towards you
+			if destName == SAC.playerName then
+			
+				if subevent == "SPELL_CAST_SUCCESS" then
+					
+					--self:Print(spellName)
+					for k,v in pairs(self.pvpSpellNames) do
+
+						if v == spellName then
+							-- Check if PVP spell should be announced.
+							if self.db.char.options[spellName].Enable then
+
+								local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+									
+								self:AnnounceSpell(string.format("PVP: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+
+							end
+						end
+					end
+				end
+			end
+		elseif self.db.char.options.pvpFriendly == "PARTY" then
+			
+			if UnitInParty(destName) then
+				
+				if subevent == "SPELL_CAST_SUCCESS" then
+					
+					--self:Print(spellName)
+					for k,v in pairs(self.pvpSpellNames) do
+
+						if v == spellName then
+							-- Check if PVP spell should be announced.
+							if self.db.char.options[spellName].Enable then
+
+								local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+									
+								self:AnnounceSpell(string.format("PVP: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+
+							end
+						end
+					end
+				end	
+			end
+		elseif self.db.char.options.pvpFriendly == "ALLIES" then
+			
+			local destIsFriendly = SAC:IsFriendly(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
+			
+			if destIsFriendly then
+				if subevent == "SPELL_CAST_SUCCESS" then
+					
+					--self:Print(spellName)
+					for k,v in pairs(self.pvpSpellNames) do
+
+						if v == spellName then
+							-- Check if PVP spell should be announced.
+							if self.db.char.options[spellName].Enable then
+
+								local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+									
+								self:AnnounceSpell(string.format("PVP: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+
+							end
+						end
+					end
+				end	
+			end
+		end
+
+		if self.db.char.options.pvpEnemy == "TARGET" then
+			-- Check if your target is performing a spell.
+			if UnitName("target") == sourceName then
+
+				if subevent == "SPELL_CAST_SUCCESS" then
+							
+					--self:Print(spellName)
+					for k,v in pairs(self.pvpItemNames) do
+
+						if k == spellName then
+							-- Check if resist should be announced for specific spell.
+							local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+								
+							self:AnnounceSpell(string.format("PVP: %s%s -%s-", icon, sourceName, v))
+
+						end
+					end
+				end
+			end
+
+		elseif self.db.char.options.pvpEnemy == "ENEMIES" then
+
+			local sourceIsHostile = SAC:IsHostile(bit.band(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
+			--local destIsFriendly = SAC:IsFriendly(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
+			--local destIsHostile = SAC:IsHostile(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
+			--local sourceIsFriendly = SAC:IsFriendly(bit.band(sourceFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
+			
+			--if sourceIsHostile then	print("HOSTILE: ", sourceName, spellName) end
+			--if destIsHostile then print("HOSTILE TARGETED: ", destName, spellName) end
+			--if sourceIsFriendly then print("FRIENDLY: ", sourceName, spellName) end
+			--if destIsFriendly then print("FRIENDLY TARGETED: ", destName, spellName) end
+
+			if sourceIsHostile then
+
+				if subevent == "SPELL_CAST_SUCCESS" then
+							
+					--self:Print(spellName)
+					for k,v in pairs(self.pvpItemNames) do
+
+						if k == spellName then
+							-- Check if resist should be announced for specific spell.
+							local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+								
+							self:AnnounceSpell(string.format("PVP: %s%s -%s-", icon, sourceName, v))
+
+						end
 					end
 				end
 			end
@@ -191,6 +297,22 @@ end
 ---------------
 -- Functions --
 ---------------
+
+function SAC:IsFriendly(flag)
+	if flag == COMBATLOG_OBJECT_REACTION_FRIENDLY then
+		return true
+	else
+		return false
+	end
+end
+
+function SAC:IsHostile(flag)
+	if flag == COMBATLOG_OBJECT_REACTION_HOSTILE then
+		return true
+	else
+		return false
+	end
+end
 
 function SAC:AnnounceSpell(msg, channelType, channelName)
 
@@ -214,6 +336,7 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 				if chatType ~= "SYSTEM" then
 					SendChatMessage(msg, chatType)
 				else
+					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
 					SAC:Print(sysMsg)
 				end
@@ -229,6 +352,7 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 				if chatType ~= "SYSTEM" then
 					SendChatMessage(msg, chatType)
 				else
+					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
 					SAC:Print(sysMsg)
 				end
@@ -244,6 +368,7 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 				if chatType ~= "SYSTEM" then
 					SendChatMessage(msg, chatType)
 				else
+					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
 					SAC:Print(sysMsg)
 				end
@@ -255,23 +380,37 @@ end
 function SAC:PopulateSpellsLists()
 	if self.classAuraIDs ~= nil then
 		for k,v in ipairs(self.classAuraIDs) do
-			local spellname = GetSpellInfo(v)
+			local spellName = GetSpellInfo(v)
 			
-			table.insert(self.aurasList, spellname)
+			table.insert(self.aurasList, spellName)
 		end
 	end
 	
 	if self.classSpellIDs ~= nil then
 		for k,v in ipairs(self.classSpellIDs) do
-			local spellname = GetSpellInfo(v)
-			table.insert(self.spellsList, spellname)
+			local spellName = GetSpellInfo(v)
+			table.insert(self.spellsList, spellName)
 		end
 	end
 	
 	if self.pvpSpellIDs ~= nil then
 		for k,v in ipairs(self.pvpSpellIDs) do
-			local spellname = GetSpellInfo(v)
-			table.insert(self.pvpList, spellname)
+			local spellName = GetSpellInfo(v)
+			table.insert(self.pvpSpellNames, spellName)
+			self.pvpAllList[spellName] = spellName
+		end
+	end
+	
+	if self.pvpItemIDs ~= nil then
+		for k, v in pairs(self.pvpItemIDs) do
+			-- Getting item info from server, and wait until callback until loading data into table.
+			local item = Item:CreateFromItemID(k)
+			item:ContinueOnItemLoad(function()
+				local itemName = GetItemInfo(k)
+				local spellName = GetSpellInfo(v)
+				self.pvpItemNames[spellName] = itemName
+				self.pvpAllList[spellName] = itemName
+			end)
 		end
 	end
 end

@@ -1,8 +1,10 @@
 local config = LibStub("AceConfig-3.0")
 local dialog = LibStub("AceConfigDialog-3.0")
 
-local CHATCHANNELS = { ["RAID"] = "RAID", ["PARTY"] = "PARTY", ["YELL"] = "YELL", ["SAY"] = "SAY", ["SYSTEM MESSAGE"] = "SYSTEM MESSAGE", }
-local CHATPARTIES = { ["RAID"] = "RAID", ["PARTY"] = "PARTY", ["SOLO"] = "SOLO", }
+local CHATCHANNELS = { ["RAID"] = "Raid", ["PARTY"] = "Party", ["YELL"] = "Yell", ["SAY"] = "Say", ["SYSTEM MESSAGE"] = "System Message" }
+local CHATPARTIES = { ["RAID"] = "Raid", ["PARTY"] = "Party", ["SOLO"] = "Solo" }
+local PVPENEMY = { ["TARGET"] = "Target", ["ENEMIES"] = "All nearby enemies" }
+local PVPFRIENDLY = { ["SELF"] = "Yourself", ["PARTY"] = "Party", ["ALLIES"] = "All nearby allies"}
 
 function SAC:CreateOptions()
 	
@@ -11,13 +13,28 @@ function SAC:CreateOptions()
 		handler = SAC,
 		type = 'group',
 		args = {
-			header = {
+			version = {
 				order = 0,
+				type = 'description',
+				fontSize = "medium",
+				name = "Version" .. " " .. SAC.addonVersion .. ", Created by Pit @ Firemaw - EU",
+				width = 'double',
+			},
+			welcomeEnable = {
+				order = 1,
+				type = 'toggle',
+				name = 'Welcome Message',
+				desc = 'Enable or disable the welcome message produced by this Addon when launching or reloading WoW.',
+				set = 'Set',
+				get = 'Get',
+			},
+			header = {
+				order = 2,
 				type = 'header',
 				name = "General",
 			},
 			chatParty = {
-				order = 1,
+				order = 3,
 				name = "Select a party option:",
 				desc = "Select a party option in the dropdown menu, and then select how you would like to announce when in specified raid/party/solo option.",
 				type = 'select',
@@ -26,7 +43,7 @@ function SAC:CreateOptions()
 				get = 'Get',
 			},
 			chatChannels = {
-				order = 2,
+				order = 4,
 				name = "Then select how to announce:",
 				type = 'group',
 				guiInline = true,
@@ -74,7 +91,7 @@ function SAC:CreateOptions()
 			},
 			
 			spacer0 = {
-				order = 3,
+				order = 9,
 				type = 'description',
 				name = " ",
 			},
@@ -163,6 +180,7 @@ function SAC:CreateOptions()
 				desc = 'Enable or disable all announcements connected to a Spell',
 				set = 'Set',
 				get = 'Get',
+				width = 'full',
 			},
 			successfulInterrupts = {
 				order = 33,
@@ -171,6 +189,7 @@ function SAC:CreateOptions()
 				desc = 'Enable or disable announcement when an enemy spellcast is interrupted successfully.',
 				set = 'Set',
 				get = 'Get',
+				width = 'full',
 			},
 			spells = {
 				order = 40,
@@ -218,19 +237,62 @@ function SAC:CreateOptions()
 			pvpDescription = {
 				order = 52,
 				type = 'description',
-				name = "Some announcements for PVP.",
+				name = "PVP related announcements.",
 			},
-			pvpSap = {
+			pvpAllEnable = {
 				order = 53,
 				type = 'toggle',
-				name = "Sapped!",
+				name = 'Announce Pvp Events',
+				desc = 'Enable or disable all announcements connected to a Pvp Event',
 				set = 'Set',
 				get = 'Get',
+				width = 'full',
+			},
+			pvpFriendly = {
+				order = 54,
+				type = 'select',
+				name = 'Scope of Friendlies',
+				desc = 'Select who you should announce which friendly targets are affected by pvp spells.',
+				values = PVPFRIENDLY,
+				set = 'Set',
+				get = 'Get',
+			},
+			pvpEnemy = {
+				order = 55,
+				type = 'select',
+				name = 'Scope of Enemies',
+				desc = 'Select who you should announce pvp spells for.',
+				values = PVPENEMY,
+				set = 'Set',
+				get = 'Get',
+			},
+			pvp = {
+				order = 56,
+				type = 'select',
+				name = 'PVP Target Spells',
+				values = SAC.pvpAllList,
+				style = 'radio',
+				set = 'SetPvpList',
+				get = 'GetPvpList',
+			},
+			pvpSettings = {
+				order = 57,
+				name = "",
+				type = 'group',
+				guiInline = true,
+				args = {
+					Enable = {
+						order = 0,
+						type = 'toggle',
+						name = "Enable",
+						set = 'SetPvpToggle',
+						get = 'GetPvpToggle',
+					},
+				},
 			},
 		},
 	}
 
-	
 	self:InitializeDefaultSettings()
 	
 	config:RegisterOptionsTable("SAC_Options", SAC.Options)
@@ -238,7 +300,6 @@ function SAC:CreateOptions()
 	
 	self:RegisterChatCommand("sac", "OpenOptions")
 	self:RegisterChatCommand("spellannouncer", "OpenOptions")
-	
 	
 end
 
@@ -257,20 +318,37 @@ function SAC:InitializeDefaultSettings()
 	if self.db.char.options == nil then
 		self.db.char.options = {}
 	end
+
+	if self.db.char.options.welcomeEnable == nil then
+		self.db.char.options.welcomeEnable = true
+	end
 	
 	if self.db.char.options.chatParty == nil then
 		self.db.char.options.chatParty = "SOLO"
 	end
-	
+
 	for p in pairs(CHATPARTIES) do
 		if self.db.char.options[p] == nil then
 			self.db.char.options[p] = {}
-			
-			self.db.char.options[p].chatRaid = false
-			self.db.char.options[p].chatParty = false
-			self.db.char.options[p].chatYell = true
-			self.db.char.options[p].chatSay = false
-			self.db.char.options[p].chatSystem = false
+			if p == "SOLO" then
+				self.db.char.options[p].chatYell = false
+				self.db.char.options[p].chatSay = false
+				self.db.char.options[p].chatSystem = true
+			end
+			if p == "PARTY" then
+				self.db.char.options[p].chatParty = true
+				self.db.char.options[p].chatYell = false
+				self.db.char.options[p].chatSay = false
+				self.db.char.options[p].chatSystem = false
+			end
+			if p == "RAID" then
+				self.db.char.options[p].chatRaid = true
+				self.db.char.options[p].chatParty = false
+				self.db.char.options[p].chatYell = false
+				self.db.char.options[p].chatSay = false
+				self.db.char.options[p].chatSystem = false
+			end
+
 		end
 	end
 	
@@ -278,14 +356,6 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.auraAllEnable = true
 	end
 	
-	if self.db.char.options.resistsAllEnable ~= nil then
-		self.db.char.options.spellAllEnable = self.db.char.options.resistsAllEnable
-	end
-	
-	if self.db.char.options.spellAllEnable == nil then
-		self.db.char.options.spellAllEnable = true
-	end
-
 	for k,v in pairs(self.aurasList) do
 		
 		local found = false
@@ -316,6 +386,20 @@ function SAC:InitializeDefaultSettings()
 		
 	end
 	
+	-- Conversion from older versions.
+	if self.db.char.options.resistsAllEnable ~= nil then
+		self.db.char.options.spellAllEnable = self.db.char.options.resistsAllEnable
+		self.db.char.options.resistsAllEnable = nil
+	end
+	
+	if self.db.char.options.spellAllEnable == nil then
+		self.db.char.options.spellAllEnable = true
+	end
+
+	if self.db.char.options.successfulInterrupts == nil then
+		self.db.char.options.successfulInterrupts = true
+	end
+
 	for k,v in pairs(self.spellsList) do
 		
 		local found = false
@@ -339,12 +423,35 @@ function SAC:InitializeDefaultSettings()
 		
 	end
 	
-	if self.db.char.options.successfulInterrupts == nil then
-		self.db.char.options.successfulInterrupts = true
+	if self.db.char.options.pvpAllEnable == nil then
+		self.db.char.options.pvpAllEnable = true
 	end
-	
-	if self.db.char.options.pvpSap == nil then
-		self.db.char.options.pvpSap = true
+
+	if self.db.char.options.pvpFriendly == nil then
+		self.db.char.options.pvpFriendly = "SELF"
+	end
+
+	if self.db.char.options.pvpEnemy == nil then
+		self.db.char.options.pvpEnemy = "TARGET"
+	end
+
+	for k,v in pairs(self.pvpAllList) do
+		
+		local found = false
+		for x,_ in pairs(self.db.char.options) do
+			if k == x then
+				found = true
+				
+				if self.db.char.options[v].Enable == nil then
+					self.db.char.options[v].Enable = true
+				end
+			end
+		end
+		if not found then
+			self.db.char.options[v] = {}
+			self.db.char.options[v].Enable = true
+		end
+		
 	end
 	
 	if self.db.char.options.auras == nil then
@@ -354,8 +461,15 @@ function SAC:InitializeDefaultSettings()
 	if self.db.char.options.spells == nil then
 		self.db.char.options.spells = 1
 	end
+
 	
+
+	--if self.db.char.options.pvp == nil then
+	--	self.db.char.options.pvp = GetSpellInfo(self.pvpSpellIDs[1])
+	--end
+
 end
+
 
 -- Disables menuoptions based on what party option is selected.
 function SAC:ChatRaidDisableCheck() 
@@ -366,9 +480,11 @@ function SAC:ChatRaidDisableCheck()
 	end
 end
 
+
 function SAC:WhisperTargetDisableCheck()
 	return self.db.char.options[self.lastSelectedAura].isSelfBuff
 end
+
 
 -- Disables menuoptions based on what party option is selected.
 function SAC:ChatPartyDisableCheck() 
@@ -400,6 +516,7 @@ function SAC:GetAuraList(info)
 	
 end
 
+
 function SAC:SetSpellsList(info, val)
 
 	self.db.char.options[info[#info]] = val
@@ -414,6 +531,26 @@ function SAC:GetSpellsList(info)
 	-- Set the correct name for the Resist settings box.
 	if self.Options.args.spellSettings.name == "" then
 		self.Options.args.spellSettings.name = self.spellsList[self.db.char.options[info[#info]]]
+	end
+	
+	return self.db.char.options[info[#info]]
+end
+
+
+function SAC:SetPvpList(info, val)
+
+	self.db.char.options[info[#info]] = val
+	self.lastSelectedPvp = info["option"]["values"][val]
+	self.Options.args.pvpSettings.name = self.lastSelectedPvp
+	
+end
+
+
+function SAC:GetPvpList(info)
+	
+	-- Set the correct name for the Resist settings box.
+	if self.Options.args.pvpSettings.name == "" then
+		self.Options.args.pvpSettings.name = self.pvpAllList[self.db.char.options[info[#info]]]
 	end
 	
 	return self.db.char.options[info[#info]]
@@ -458,6 +595,25 @@ function SAC:GetSpellToggle(info)
 end
 
 
+function SAC:SetPvpToggle(info, val)
+
+	self.db.char.options[self.lastSelectedPvp][info[#info]] = val
+	
+end
+
+
+function SAC:GetPvpToggle(info)
+
+	-- Set the correct last selected spell.
+	if self.lastSelectedPvp == nil then
+		self.lastSelectedPvp = self.pvpAllList[self.db.char.options.pvp]
+	end
+
+	return self.db.char.options[self.lastSelectedPvp][info[#info]]
+	
+end
+
+
 function SAC:SetChatToggle(info, val)
 
 	self.db.char.options[self.db.char.options.chatParty][info[#info]] = val
@@ -470,7 +626,6 @@ function SAC:GetChatToggle(info)
 	return self.db.char.options[self.db.char.options.chatParty][info[#info]]
 	
 end
-
 
 
 function SAC:Set(info, val)
