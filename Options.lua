@@ -4,7 +4,7 @@ local dialog = LibStub("AceConfigDialog-3.0")
 local CHATCHANNELS = { ["RAID"] = "Raid", ["PARTY"] = "Party", ["YELL"] = "Yell", ["SAY"] = "Say", ["SYSTEM MESSAGE"] = "System Message" }
 local CHATPARTIES = { ["RAID"] = "Raid", ["PARTY"] = "Party", ["SOLO"] = "Solo" }
 local PVPENEMY = { ["TARGET"] = "Target", ["ENEMIES"] = "All nearby enemies" }
-local PVPFRIENDLY = { ["SELF"] = "Your self", ["PARTY"] = "Party", ["ALLIES"] = "All nearby allies"}
+local PVPFRIENDLY = { ["SELF"] = "Yourself", ["PARTY"] = "Party", ["ALLIES"] = "All nearby allies"}
 
 function SAC:CreateOptions()
 	
