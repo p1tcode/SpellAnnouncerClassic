@@ -125,7 +125,6 @@ Spells =
 EnemySpells =
 {
 	6770,	-- Sap
-	589,	-- Shadow word pain
 }
 EnemyItems =
 {
