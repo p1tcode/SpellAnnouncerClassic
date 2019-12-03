@@ -1,8 +1,10 @@
 local config = LibStub("AceConfig-3.0")
 local dialog = LibStub("AceConfigDialog-3.0")
 
-local CHATCHANNELS = { ["RAID"] = "RAID", ["PARTY"] = "PARTY", ["YELL"] = "YELL", ["SAY"] = "SAY", ["SYSTEM MESSAGE"] = "SYSTEM MESSAGE", }
-local CHATPARTIES = { ["RAID"] = "RAID", ["PARTY"] = "PARTY", ["SOLO"] = "SOLO", }
+local CHATCHANNELS = { ["RAID"] = "Raid", ["PARTY"] = "Party", ["YELL"] = "Yell", ["SAY"] = "Say", ["SYSTEM MESSAGE"] = "System Message" }
+local CHATPARTIES = { ["RAID"] = "Raid", ["PARTY"] = "Party", ["SOLO"] = "Solo" }
+local PVPENEMY = { ["TARGET"] = "Target", ["ENEMIES"] = "All nearby enemies" }
+local PVPFRIENDLY = { ["SELF"] = "Your self", ["PARTY"] = "Party", ["ALLIES"] = "All nearby allies"}
 
 function SAC:CreateOptions()
 	
@@ -237,8 +239,35 @@ function SAC:CreateOptions()
 				type = 'description',
 				name = "PVP related announcements.",
 			},
-			pvp = {
+			pvpAllEnable = {
 				order = 53,
+				type = 'toggle',
+				name = 'Announce Pvp Events',
+				desc = 'Enable or disable all announcements connected to a Pvp Event',
+				set = 'Set',
+				get = 'Get',
+				width = 'full',
+			},
+			pvpFriendly = {
+				order = 54,
+				type = 'select',
+				name = 'Scope of Friendlies',
+				desc = 'Select who you should announce which friendly targets are affected by pvp spells.',
+				values = PVPFRIENDLY,
+				set = 'Set',
+				get = 'Get',
+			},
+			pvpEnemy = {
+				order = 55,
+				type = 'select',
+				name = 'Scope of Enemies',
+				desc = 'Select who you should announce pvp spells for.',
+				values = PVPENEMY,
+				set = 'Set',
+				get = 'Get',
+			},
+			pvp = {
+				order = 56,
 				type = 'select',
 				name = 'PVP Target Spells',
 				values = SAC.pvpAllList,
@@ -247,7 +276,7 @@ function SAC:CreateOptions()
 				get = 'GetPvpList',
 			},
 			pvpSettings = {
-				order = 54,
+				order = 57,
 				name = "",
 				type = 'group',
 				guiInline = true,
@@ -289,24 +318,37 @@ function SAC:InitializeDefaultSettings()
 	if self.db.char.options == nil then
 		self.db.char.options = {}
 	end
+
+	if self.db.char.options.welcomeEnable == nil then
+		self.db.char.options.welcomeEnable = true
+	end
 	
 	if self.db.char.options.chatParty == nil then
 		self.db.char.options.chatParty = "SOLO"
-	end
-	
-	if self.db.char.options.welcomeEnable == nil then
-		self.db.char.options.welcomeEnable = true
 	end
 
 	for p in pairs(CHATPARTIES) do
 		if self.db.char.options[p] == nil then
 			self.db.char.options[p] = {}
-			
-			self.db.char.options[p].chatRaid = false
-			self.db.char.options[p].chatParty = false
-			self.db.char.options[p].chatYell = true
-			self.db.char.options[p].chatSay = false
-			self.db.char.options[p].chatSystem = false
+			if p == "SOLO" then
+				self.db.char.options[p].chatYell = false
+				self.db.char.options[p].chatSay = false
+				self.db.char.options[p].chatSystem = true
+			end
+			if p == "PARTY" then
+				self.db.char.options[p].chatParty = true
+				self.db.char.options[p].chatYell = false
+				self.db.char.options[p].chatSay = false
+				self.db.char.options[p].chatSystem = false
+			end
+			if p == "RAID" then
+				self.db.char.options[p].chatRaid = true
+				self.db.char.options[p].chatParty = false
+				self.db.char.options[p].chatYell = false
+				self.db.char.options[p].chatSay = false
+				self.db.char.options[p].chatSystem = false
+			end
+
 		end
 	end
 	
@@ -314,14 +356,6 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.auraAllEnable = true
 	end
 	
-	if self.db.char.options.resistsAllEnable ~= nil then
-		self.db.char.options.spellAllEnable = self.db.char.options.resistsAllEnable
-	end
-	
-	if self.db.char.options.spellAllEnable == nil then
-		self.db.char.options.spellAllEnable = true
-	end
-
 	for k,v in pairs(self.aurasList) do
 		
 		local found = false
@@ -352,6 +386,20 @@ function SAC:InitializeDefaultSettings()
 		
 	end
 	
+	-- Conversion from older versions.
+	if self.db.char.options.resistsAllEnable ~= nil then
+		self.db.char.options.spellAllEnable = self.db.char.options.resistsAllEnable
+		self.db.char.options.resistsAllEnable = nil
+	end
+	
+	if self.db.char.options.spellAllEnable == nil then
+		self.db.char.options.spellAllEnable = true
+	end
+
+	if self.db.char.options.successfulInterrupts == nil then
+		self.db.char.options.successfulInterrupts = true
+	end
+
 	for k,v in pairs(self.spellsList) do
 		
 		local found = false
@@ -375,6 +423,18 @@ function SAC:InitializeDefaultSettings()
 		
 	end
 	
+	if self.db.char.options.pvpAllEnable == nil then
+		self.db.char.options.pvpAllEnable = true
+	end
+
+	if self.db.char.options.pvpFriendly == nil then
+		self.db.char.options.pvpFriendly = "SELF"
+	end
+
+	if self.db.char.options.pvpEnemy == nil then
+		self.db.char.options.pvpEnemy = "TARGET"
+	end
+
 	for k,v in pairs(self.pvpAllList) do
 		
 		local found = false
@@ -394,10 +454,6 @@ function SAC:InitializeDefaultSettings()
 		
 	end
 	
-	if self.db.char.options.successfulInterrupts == nil then
-		self.db.char.options.successfulInterrupts = true
-	end
-		
 	if self.db.char.options.auras == nil then
 		self.db.char.options.auras = 1
 	end
@@ -405,7 +461,13 @@ function SAC:InitializeDefaultSettings()
 	if self.db.char.options.spells == nil then
 		self.db.char.options.spells = 1
 	end
+
 	
+
+	--if self.db.char.options.pvp == nil then
+	--	self.db.char.options.pvp = GetSpellInfo(self.pvpSpellIDs[1])
+	--end
+
 end
 
 
@@ -546,7 +608,7 @@ function SAC:GetPvpToggle(info)
 	if self.lastSelectedPvp == nil then
 		self.lastSelectedPvp = self.pvpAllList[self.db.char.options.pvp]
 	end
-	
+
 	return self.db.char.options[self.lastSelectedPvp][info[#info]]
 	
 end

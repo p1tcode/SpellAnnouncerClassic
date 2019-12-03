@@ -125,11 +125,13 @@ Spells =
 EnemySpells =
 {
 	6770,	-- Sap
+	589,	-- Shadow word pain
 }
 EnemyItems =
 {
 	[3387] = 3169,	-- Limited Invulnerability Potion, { Invulnerability }
 	[5634] = 6615, 	-- Free Action Potion, { Free Action }
 	[18639] = 23132, -- Ultra-Flash Shadow Reflector, { Shadow Reflector }
-	
+	[18634] = 23131, -- Gyrofreeze Ice Reflector, { Frost Reflector }
+	[18638] = 23097, -- Hyper-Radiant Flame Reflector, { Fire Reflector }
 }
