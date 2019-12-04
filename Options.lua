@@ -95,8 +95,6 @@ function SAC:CreateOptions()
 				type = 'description',
 				name = " ",
 			},
-			
-			-- Aura section in Options menu
 			aurasHeader = {
 				order = 10,
 				type = 'header',
@@ -161,8 +159,6 @@ function SAC:CreateOptions()
 				type = 'description',
 				name = " ",
 			},
-			
-			-- Spells section in the Options menu
 			spellHeader = {
 				order = 30,
 				type = 'header',
@@ -227,8 +223,6 @@ function SAC:CreateOptions()
 				type = 'description',
 				name = " ",
 			},
-			
-			-- Spells section in the Options menu
 			pvpHeader = {
 				order = 51,
 				type = 'header',
@@ -462,11 +456,9 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.spells = 1
 	end
 
-	
-
-	--if self.db.char.options.pvp == nil then
-	--	self.db.char.options.pvp = GetSpellInfo(self.pvpSpellIDs[1])
-	--end
+	if self.db.char.options.pvp == nil then
+		self.db.char.options.pvp = GetSpellInfo(self.pvpSpellIDs[1])
+	end
 
 end
 
