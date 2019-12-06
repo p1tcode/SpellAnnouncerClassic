@@ -68,6 +68,7 @@ Spells =
 		9853,	-- Entangling root
 		20748,	-- Rebirth
 		5211,	-- Bash
+		17116,	-- Nature's Swiftness
 	},
 	["HUNTER"] =
 	{
