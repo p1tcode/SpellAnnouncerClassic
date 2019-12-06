@@ -360,7 +360,7 @@ function SAC:InitializeDefaultSettings()
 					self.db.char.options[v].announceStart = true
 				end
 				if self.db.char.options[v].announceEnd == nil then
-					self.db.char.options[v].announceEnd = true
+					self.db.char.options[v].announceEnd = false
 				end
 				if self.db.char.options[v].isSelfBuff == nil then
 					self.db.char.options[v].isSelfBuff = SpellIsSelfBuff(select(7, GetSpellInfo(self.classAuraIDs[k])))

@@ -7,6 +7,7 @@ Auras =
 		29166, 	-- Innervate
 		5229, 	-- Enrage
 		22896,	-- Frenzied Regeneration
+		17116,	-- Nature's Swiftness
 	},
 	["HUNTER"] =
 	{
@@ -68,7 +69,6 @@ Spells =
 		9853,	-- Entangling root
 		20748,	-- Rebirth
 		5211,	-- Bash
-		17116,	-- Nature's Swiftness
 	},
 	["HUNTER"] =
 	{
