@@ -350,10 +350,10 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.auraAllEnable = true
 	end
 	
-	for k,v in pairs(self.aurasList) do
+	for k,v in ipairs(self.aurasList) do
 		
 		local found = false
-		for x,_ in pairs(self.db.char.options) do
+		for x,_ in ipairs(self.db.char.options) do
 			if v == x then
 				found = true
 				if self.db.char.options[v].announceStart == nil then
