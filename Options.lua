@@ -350,8 +350,7 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.auraAllEnable = true
 	end
 	
-	for k,v in pairs(self.aurasList) do
-		
+	for k,v in ipairs(self.aurasList) do
 		local found = false
 		for x,_ in pairs(self.db.char.options) do
 			if v == x then
@@ -363,7 +362,7 @@ function SAC:InitializeDefaultSettings()
 					self.db.char.options[v].announceEnd = false
 				end
 				if self.db.char.options[v].isSelfBuff == nil then
-					self.db.char.options[v].isSelfBuff = SpellIsSelfBuff(select(7, GetSpellInfo(self.classAuraIDs[k])))
+					self.db.char.options[v].isSelfBuff = SpellIsSelfBuff(self.classAuraIDs[k])
 				end
 				if self.db.char.options[v].whisperTarget == nil then
 					self.db.char.options[v].whisperTarget = false
@@ -374,7 +373,7 @@ function SAC:InitializeDefaultSettings()
 			self.db.char.options[v] = {}
 			self.db.char.options[v].announceStart = true
 			self.db.char.options[v].announceEnd = false
-			self.db.char.options[v].isSelfBuff = SpellIsSelfBuff(select(7, GetSpellInfo(self.classAuraIDs[k])))
+			self.db.char.options[v].isSelfBuff = SpellIsSelfBuff(self.classAuraIDs[k])
 			self.db.char.options[v].whisperTarget = false
 		end
 		
