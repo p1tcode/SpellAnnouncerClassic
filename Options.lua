@@ -351,7 +351,6 @@ function SAC:InitializeDefaultSettings()
 	end
 	
 	for k,v in ipairs(self.aurasList) do
-		print(v)
 		local found = false
 		for x,_ in pairs(self.db.char.options) do
 			if v == x then
