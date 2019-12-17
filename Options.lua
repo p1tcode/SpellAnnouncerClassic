@@ -1,8 +1,8 @@
 local config = LibStub("AceConfig-3.0")
 local dialog = LibStub("AceConfigDialog-3.0")
 
-local CHATCHANNELS = { ["RAID"] = "Raid", ["PARTY"] = "Party", ["YELL"] = "Yell", ["SAY"] = "Say", ["SYSTEM MESSAGE"] = "System Message" }
-local CHATPARTIES = { ["RAID"] = "Raid", ["PARTY"] = "Party", ["SOLO"] = "Solo" }
+local CHATCHANNELS = { ["BATTLEGROUND"] = "Battleground", ["RAID"] = "Raid", ["PARTY"] = "Party", ["YELL"] = "Yell", ["SAY"] = "Say", ["SYSTEM MESSAGE"] = "System Message" }
+local CHATGROUPS = { ["BATTLEGROUNDS"] = "Battlegrounds", ["RAID"] = "Raid", ["PARTY"] = "Party", ["SOLO"] = "Solo" }
 local PVPENEMY = { ["TARGET"] = "Target", ["ENEMIES"] = "All nearby enemies" }
 local PVPFRIENDLY = { ["SELF"] = "Yourself", ["PARTY"] = "Party", ["ALLIES"] = "All nearby allies"}
 
@@ -28,28 +28,55 @@ function SAC:CreateOptions()
 				set = 'Set',
 				get = 'Get',
 			},
+			-- GROUP OPTIONS --
 			header = {
 				order = 2,
 				type = 'header',
 				name = "General",
 			},
-			chatParty = {
+			chatGroup = {
 				order = 3,
-				name = "Select a party option:",
-				desc = "Select a party option in the dropdown menu, and then select how you would like to announce when in specified raid/party/solo option.",
+				name = "Select a group option:",
+				desc = "Select a group option in the dropdown menu, and then select how you would like to announce when in specified raid/party/solo option.",
 				type = 'select',
-				values = CHATPARTIES,
-				set = 'Set',
+				values = CHATGROUPS,
+				set = 'SetChatGroup',
 				get = 'Get',
 			},
-			chatChannels = {
+			chatChangeAllGroups = {
 				order = 4,
+				type = 'toggle',
+				name = 'Change all Groups',
+				desc = 'When enabled changes made will be done to all groups (ONLY AFFECTS THE SETTINGS THAT ARE CHANGED). ',
+				set = 'SetChatGroup',
+				get = 'Get',
+			},
+			chatCopySettings = {
+				order = 5,
+				type = 'execute',
+				name = 'Copy Current',
+				desc = 'Copy current group options to all other groups (WILL AFFECT ALL SETTINGS).',
+				confirmText = "Are you sure you want to overwrite all other group settings with the current one?",
+				confirm = true,
+				func = 'CopyCurrent',
+			},
+			chatChannels = {
+				order = 6,
 				name = "Then select how to announce:",
 				type = 'group',
 				guiInline = true,
 				args = {
-					chatRaid = {
+					battleground = {
 						order = 0,
+						type = 'toggle',
+						name = "/battleground",
+						disabled = 'ChatBGDisableCheck',
+						hidden = 'ChatBGDisableCheck',
+						set = 'SetChatToggle',
+						get = 'GetChatToggle',
+					},
+					raid = {
+						order = 1,
 						type = 'toggle',
 						name = "/raid",
 						disabled = 'ChatRaidDisableCheck',
@@ -57,8 +84,8 @@ function SAC:CreateOptions()
 						set = 'SetChatToggle',
 						get = 'GetChatToggle',
 					},
-					chatParty = {
-						order = 1,
+					party = {
+						order = 2,
 						type = 'toggle',
 						name = "/party",
 						disabled = 'ChatPartyDisableCheck',
@@ -66,22 +93,24 @@ function SAC:CreateOptions()
 						set = 'SetChatToggle',
 						get = 'GetChatToggle',
 					},
-					chatYell = {
-						order = 2,
-						type = 'toggle',
-						name = "/yell",
-						set = 'SetChatToggle',
-						get = 'GetChatToggle',
-					},
-					chatSay = {
+					yell = {
 						order = 3,
 						type = 'toggle',
-						name = "/say",
+						name = "/yell",
+						disabled = true,
 						set = 'SetChatToggle',
 						get = 'GetChatToggle',
 					},
-					chatSystem = {
+					say = {
 						order = 4,
+						type = 'toggle',
+						name = "/say",
+						disabled = true,
+						set = 'SetChatToggle',
+						get = 'GetChatToggle',
+					},
+					system = {
+						order = 5,
 						type = 'toggle',
 						name = "System Message",
 						set = 'SetChatToggle',
@@ -89,7 +118,14 @@ function SAC:CreateOptions()
 					},
 				},
 			},
-			
+			info = {
+				order = 7,
+				type = 'description',
+				fontSize = "medium",
+				name = "INFO: Because of an change in the Blizzard API in version 1.13.3 of WoW Classic, /say and /yell is not allwed by addons to send messages to. It may come back at a later date, but is disabled as of patch 1.13.3.",
+			},
+
+			-- AURAS --
 			spacer0 = {
 				order = 9,
 				type = 'description',
@@ -110,13 +146,13 @@ function SAC:CreateOptions()
 				type = 'toggle',
 				name = 'Announce auras',
 				desc = 'Enable or disable all announcements connected to an Aura',
-				set = 'Set',
-				get = 'Get',
+				set = 'SetWithGroup',
+				get = 'GetWithGroup',
 			},
 			auras = {
 				order = 13,
 				type = 'select',
-				name = 'Auras',
+				name = 'Auras - ' .. CHATGROUPS[self.db.char.options.chatGroup],
 				values = SAC.aurasList,
 				style = 'radio',
 				set = 'SetAuraList',
@@ -127,6 +163,7 @@ function SAC:CreateOptions()
 				name = "",
 				type = 'group',
 				guiInline = true,
+				--hidden = self.db.char.options[self.db.char.options.chatGroup].auraAllEnable,
 				args = {
 					announceStart = {
 						order = 0,
@@ -153,7 +190,8 @@ function SAC:CreateOptions()
 					},
 				},
 			},
-			
+
+			-- SPELLS --
 			spacer1 = {
 				order = 29,
 				type = 'description',
@@ -174,8 +212,8 @@ function SAC:CreateOptions()
 				type = 'toggle',
 				name = 'Announce spells',
 				desc = 'Enable or disable all announcements connected to a Spell',
-				set = 'Set',
-				get = 'Get',
+				set = 'SetWithGroup',
+				get = 'GetWithGroup',
 				width = 'full',
 			},
 			successfulInterrupts = {
@@ -183,14 +221,14 @@ function SAC:CreateOptions()
 				type = 'toggle',
 				name = 'Successful interrupts',
 				desc = 'Enable or disable announcement when an enemy spellcast is interrupted successfully.',
-				set = 'Set',
-				get = 'Get',
+				set = 'SetWithGroup',
+				get = 'GetWithGroup',
 				width = 'full',
 			},
 			spells = {
 				order = 40,
 				type = 'select',
-				name = 'Spells',
+				name = 'Spells - ' .. CHATGROUPS[self.db.char.options.chatGroup],
 				values = SAC.spellsList,
 				style = 'radio',
 				set = 'SetSpellsList',
@@ -218,6 +256,8 @@ function SAC:CreateOptions()
 					},
 				},
 			},
+
+			-- PVP --
 			spacer2 = {
 				order = 50,
 				type = 'description',
@@ -238,8 +278,8 @@ function SAC:CreateOptions()
 				type = 'toggle',
 				name = 'Announce Pvp Events',
 				desc = 'Enable or disable all announcements connected to a Pvp Event',
-				set = 'Set',
-				get = 'Get',
+				set = 'SetWithGroup',
+				get = 'GetWithGroup',
 				width = 'full',
 			},
 			pvpFriendly = {
@@ -248,8 +288,8 @@ function SAC:CreateOptions()
 				name = 'Scope of Friendlies',
 				desc = 'Select who you should announce which friendly targets are affected by pvp spells.',
 				values = PVPFRIENDLY,
-				set = 'Set',
-				get = 'Get',
+				set = 'SetWithGroup',
+				get = 'GetWithGroup',
 			},
 			pvpEnemy = {
 				order = 55,
@@ -257,13 +297,13 @@ function SAC:CreateOptions()
 				name = 'Scope of Enemies',
 				desc = 'Select who you should announce pvp spells for.',
 				values = PVPENEMY,
-				set = 'Set',
-				get = 'Get',
+				set = 'SetWithGroup',
+				get = 'GetWithGroup',
 			},
 			pvp = {
 				order = 56,
 				type = 'select',
-				name = 'PVP Target Spells',
+				name = 'PVP - ' .. CHATGROUPS[self.db.char.options.chatGroup],
 				values = SAC.pvpAllList,
 				style = 'radio',
 				set = 'SetPvpList',
@@ -305,9 +345,13 @@ function SAC:OpenOptions(input)
 	end
 end
 
--- Sets all default settings if not set before.
+-- Sets all default settings if not set before, and convert changes from old to new during development.
 function SAC:InitializeDefaultSettings()
 
+	if self.db.char.reset == nil or self.db.char.reset == false then
+		self.db.char.options = nil
+		self.db.char.reset = true
+	end
 
 	if self.db.char.options == nil then
 		self.db.char.options = {}
@@ -317,136 +361,133 @@ function SAC:InitializeDefaultSettings()
 		self.db.char.options.welcomeEnable = true
 	end
 	
-	if self.db.char.options.chatParty == nil then
-		self.db.char.options.chatParty = "SOLO"
+	if self.db.char.options.chatGroup == nil then
+		self.db.char.options.chatGroup = "SOLO"
 	end
 
-	for p in pairs(CHATPARTIES) do
+	-- Set this to default so its a cognitive desicion to actually turn it on.
+	self.db.char.options.chatChangeAllGroups = false
+
+	-- TODO: CONVERT self.db.char.options[p].raid and so on to self.db.char.options[p].chatGroups.raid
+	for p in pairs(CHATGROUPS) do
+
 		if self.db.char.options[p] == nil then
 			self.db.char.options[p] = {}
+		end
+		if self.db.char.options[p].chatGroups == nil then
+			self.db.char.options[p].chatGroups = {}
 			if p == "SOLO" then
-				self.db.char.options[p].chatYell = false
-				self.db.char.options[p].chatSay = false
-				self.db.char.options[p].chatSystem = true
+				self.db.char.options[p].chatGroups.yell = false
+				self.db.char.options[p].chatGroups.say = false
+				self.db.char.options[p].chatGroups.system = true
 			end
 			if p == "PARTY" then
-				self.db.char.options[p].chatParty = true
-				self.db.char.options[p].chatYell = false
-				self.db.char.options[p].chatSay = false
-				self.db.char.options[p].chatSystem = false
+				self.db.char.options[p].chatGroups.party = true
+				self.db.char.options[p].chatGroups.yell = false
+				self.db.char.options[p].chatGroups.say = false
+				self.db.char.options[p].chatGroups.system = false
 			end
 			if p == "RAID" then
-				self.db.char.options[p].chatRaid = true
-				self.db.char.options[p].chatParty = false
-				self.db.char.options[p].chatYell = false
-				self.db.char.options[p].chatSay = false
-				self.db.char.options[p].chatSystem = false
+				self.db.char.options[p].chatGroups.raid = true
+				self.db.char.options[p].chatGroups.party = false
+				self.db.char.options[p].chatGroups.yell = false
+				self.db.char.options[p].chatGroups.say = false
+				self.db.char.options[p].chatGroups.system = false
 			end
-
-		end
-	end
-	
-	if self.db.char.options.auraAllEnable == nil then
-		self.db.char.options.auraAllEnable = true
-	end
-	
-	for k,v in ipairs(self.aurasList) do
-		local found = false
-		for x,_ in pairs(self.db.char.options) do
-			if v == x then
-				found = true
-				if self.db.char.options[v].announceStart == nil then
-					self.db.char.options[v].announceStart = true
-				end
-				if self.db.char.options[v].announceEnd == nil then
-					self.db.char.options[v].announceEnd = false
-				end
-				if self.db.char.options[v].isSelfBuff == nil then
-					self.db.char.options[v].isSelfBuff = SpellIsSelfBuff(self.classAuraIDs[k])
-				end
-				if self.db.char.options[v].whisperTarget == nil then
-					self.db.char.options[v].whisperTarget = false
-				end
+			if p == "BATTLEGROUNDS" then
+				self.db.char.options[p].chatGroups.battleground = true
+				self.db.char.options[p].chatGroups.yell = false
+				self.db.char.options[p].chatGroups.say = false
+				self.db.char.options[p].chatGroups.system = false
 			end
 		end
-		if not found then
-			self.db.char.options[v] = {}
-			self.db.char.options[v].announceStart = true
-			self.db.char.options[v].announceEnd = false
-			self.db.char.options[v].isSelfBuff = SpellIsSelfBuff(self.classAuraIDs[k])
-			self.db.char.options[v].whisperTarget = false
+
+		-- Because of changes in Blizzards API Yell and Say is not allowed at the moment. May come back later. Removed in 1.13.3
+		self.db.char.options[p].chatGroups.yell = false
+		self.db.char.options[p].chatGroups.say = false
+		
+		-- Auras --
+		if self.db.char.options[p].auraAllEnable == nil then
+			self.db.char.options[p].auraAllEnable = true
 		end
-		
-	end
 	
-	-- Conversion from older versions.
-	if self.db.char.options.resistsAllEnable ~= nil then
-		self.db.char.options.spellAllEnable = self.db.char.options.resistsAllEnable
-		self.db.char.options.resistsAllEnable = nil
-	end
 	
-	if self.db.char.options.spellAllEnable == nil then
-		self.db.char.options.spellAllEnable = true
-	end
-
-	if self.db.char.options.successfulInterrupts == nil then
-		self.db.char.options.successfulInterrupts = true
-	end
-
-	for k,v in pairs(self.spellsList) do
-		
-		local found = false
-		for x,_ in pairs(self.db.char.options) do
-			if v == x then
-				found = true
-				
-				if self.db.char.options[v].spellAnnounceEnabled == nil then
-					self.db.char.options[v].spellAnnounceEnabled = false
-				end
-				if self.db.char.options[v].resistAnnounceEnabled == nil then
-					self.db.char.options[v].resistAnnounceEnabled = true
+		for k,v in ipairs(self.aurasList) do
+			
+			local found = false
+			for x in pairs(self.db.char.options[p]) do
+				if v == x then
+					found = true
 				end
 			end
-		end
-		if not found then
-			self.db.char.options[v] = {}
-			self.db.char.options[v].spellAnnounceEnabled = false
-			self.db.char.options[v].resistAnnounceEnabled = true
-		end
-		
-	end
-	
-	if self.db.char.options.pvpAllEnable == nil then
-		self.db.char.options.pvpAllEnable = true
-	end
-
-	if self.db.char.options.pvpFriendly == nil then
-		self.db.char.options.pvpFriendly = "SELF"
-	end
-
-	if self.db.char.options.pvpEnemy == nil then
-		self.db.char.options.pvpEnemy = "TARGET"
-	end
-
-	for k,v in pairs(self.pvpAllList) do
-		
-		local found = false
-		for x,_ in pairs(self.db.char.options) do
-			if k == x then
-				found = true
-				
-				if self.db.char.options[v].Enable == nil then
-					self.db.char.options[v].Enable = true
-				end
+			-- Set up everything from scratch if no data is found about the given aura.
+			if not found then
+				self.db.char.options[p][v] = {}
+				self.db.char.options[p][v].announceStart = true
+				self.db.char.options[p][v].announceEnd = false
+				self.db.char.options[p][v].isSelfBuff = SpellIsSelfBuff(self.classAuraIDs[k])
+				self.db.char.options[p][v].whisperTarget = false
 			end
 		end
-		if not found then
-			self.db.char.options[v] = {}
-			self.db.char.options[v].Enable = true
+
+		-- Spells --	
+		if self.db.char.options[p].spellAllEnable == nil then
+			self.db.char.options[p].spellAllEnable = true
 		end
-		
+
+		if self.db.char.options[p].successfulInterrupts == nil then
+			self.db.char.options[p].successfulInterrupts = true
+		end
+
+		for k,v in pairs(self.spellsList) do
+			
+			local found = false
+			for x in pairs(self.db.char.options[p]) do
+				if v == x then
+					found = true
+				end
+			end
+			if not found then
+				self.db.char.options[p][v] = {}
+				self.db.char.options[p][v].spellAnnounceEnabled = false
+				self.db.char.options[p][v].resistAnnounceEnabled = true
+			end
+			
+		end
+
+		-- PVP --
+		if self.db.char.options[p].pvpAllEnable == nil then
+			self.db.char.options[p].pvpAllEnable = true
+		end
+
+		if self.db.char.options[p].pvpFriendly == nil then
+			self.db.char.options[p].pvpFriendly = "SELF"
+		end
+
+		if self.db.char.options[p].pvpEnemy == nil then
+			self.db.char.options[p].pvpEnemy = "TARGET"
+		end
+
+		for k,v in pairs(self.pvpAllList) do
+			
+			local found = false
+			for x in pairs(self.db.char.options[p]) do
+				if v == x then
+					if self.db.char.options[p][v].Enable ~= nil then
+						found = true
+					end
+				end
+			end
+			if not found then
+				if self.db.char.options[p][v] == nil then
+					self.db.char.options[p][v] = {}
+				end
+				self.db.char.options[p][v].Enable = true
+			end
+		end
 	end
-	
+
+	-- Set default selection in menues if none has earlier been selected.
 	if self.db.char.options.auras == nil then
 		self.db.char.options.auras = 1
 	end
@@ -462,9 +503,75 @@ function SAC:InitializeDefaultSettings()
 end
 
 
+-- Copy all current group options to the other groups.
+function SAC:CopyCurrent()
+	selectedGroup = self.db.char.options.chatGroup
+
+	for p in pairs(CHATGROUPS) do
+		if p ~= selectedGroup then
+			
+			self.db.char.options[p].auraAllEnable = self.db.char.options[selectedGroup].auraAllEnable
+			
+			for k, v in pairs(self.aurasList) do
+				for x in pairs(self.db.char.options[p]) do
+					if v == x then
+						self.db.char.options[p][v].announceStart = self.db.char.options[selectedGroup][v].announceStart
+						self.db.char.options[p][v].announceEnd = self.db.char.options[selectedGroup][v].announceEnd
+						self.db.char.options[p][v].isSelfBuff = self.db.char.options[selectedGroup][v].isSelfBuff
+						self.db.char.options[p][v].whisperTarget = self.db.char.options[selectedGroup][v].whisperTarget 
+					end
+				end
+			end
+
+			self.db.char.options[p].spellAllEnable = self.db.char.options[selectedGroup].spellAllEnable
+			self.db.char.options[p].successfulInterrupts = self.db.char.options[selectedGroup].successfulInterrupts
+
+			for k, v in pairs(self.spellsList) do
+				for x in pairs(self.db.char.options[p]) do
+					if v == x then
+						self.db.char.options[p][v].spellAnnounceEnabled = self.db.char.options[selectedGroup][v].spellAnnounceEnabled
+						self.db.char.options[p][v].resistAnnounceEnabled = self.db.char.options[selectedGroup][v].resistAnnounceEnabled
+					end
+				end
+			end
+
+			self.db.char.options[p].pvpAllEnable = self.db.char.options[selectedGroup].pvpAllEnable
+			self.db.char.options[p].pvpFriendly = self.db.char.options[selectedGroup].pvpFriendly
+			self.db.char.options[p].pvpEnemy = self.db.char.options[selectedGroup].pvpEnemy
+
+			for k, v in pairs(self.pvpAllList) do
+				for x in pairs(self.db.char.options[p]) do
+					if v == x then
+						self.db.char.options[p][v].Enable = self.db.char.options[selectedGroup][v].Enable
+					end
+				end
+			end
+		end
+	end
+end
+
+-- Disables menuoptions based on what party option is selected.
+function SAC:ChatBGDisableCheck() 
+	if (self.db.char.options.chatGroup == "SOLO") or (self.db.char.options.chatGroup == "PARTY") or (self.db.char.options.chatGroup == "RAID") then 
+		return true
+	else
+		return false
+	end
+end
+
 -- Disables menuoptions based on what party option is selected.
 function SAC:ChatRaidDisableCheck() 
-	if (self.db.char.options.chatParty == "SOLO") or (self.db.char.options.chatParty == "PARTY") then 
+	if (self.db.char.options.chatGroup == "SOLO") or (self.db.char.options.chatGroup == "PARTY") or (self.db.char.options.chatGroup == "BATTLEGROUNDS") then 
+		return true
+	else
+		return false
+	end
+end
+
+
+-- Disables menuoptions based on what party option is selected.
+function SAC:ChatPartyDisableCheck() 
+	if (self.db.char.options.chatGroup == "SOLO") then 
 		return true
 	else
 		return false
@@ -473,17 +580,7 @@ end
 
 
 function SAC:WhisperTargetDisableCheck()
-	return self.db.char.options[self.lastSelectedAura].isSelfBuff
-end
-
-
--- Disables menuoptions based on what party option is selected.
-function SAC:ChatPartyDisableCheck() 
-	if (self.db.char.options.chatParty == "SOLO") then 
-		return true
-	else
-		return false
-	end
+	return self.db.char.options[self.db.char.options.chatGroup][self.lastSelectedAura].isSelfBuff
 end
 
 
@@ -550,7 +647,13 @@ end
 
 function SAC:SetAuraToggle(info, val)
 
-	self.db.char.options[self.lastSelectedAura][info[#info]] = val
+	if self.db.char.options.chatChangeAllGroups then
+		for p in pairs(CHATGROUPS) do
+			self.db.char.options[p][self.lastSelectedAura][info[#info]] = val
+		end
+	else
+		self.db.char.options[self.db.char.options.chatGroup][self.lastSelectedAura][info[#info]] = val
+	end
 	
 end
 
@@ -562,14 +665,20 @@ function SAC:GetAuraToggle(info)
 		self.lastSelectedAura = self.aurasList[self.db.char.options.auras]
 	end
 		
-	return self.db.char.options[self.lastSelectedAura][info[#info]]
+	return self.db.char.options[self.db.char.options.chatGroup][self.lastSelectedAura][info[#info]]
 	
 end
 
 
 function SAC:SetSpellToggle(info, val)
 
-	self.db.char.options[self.lastSelectedSpell][info[#info]] = val
+	if self.db.char.options.chatChangeAllGroups then
+		for p in pairs(CHATGROUPS) do
+			self.db.char.options[p][self.lastSelectedSpell][info[#info]] = val
+		end
+	else
+		self.db.char.options[self.db.char.options.chatGroup][self.lastSelectedSpell][info[#info]] = val
+	end
 	
 end
 
@@ -581,15 +690,21 @@ function SAC:GetSpellToggle(info)
 		self.lastSelectedSpell = self.spellsList[self.db.char.options.spells]
 	end
 	
-	return self.db.char.options[self.lastSelectedSpell][info[#info]]
+	return self.db.char.options[self.db.char.options.chatGroup][self.lastSelectedSpell][info[#info]]
 	
 end
 
 
 function SAC:SetPvpToggle(info, val)
 
-	self.db.char.options[self.lastSelectedPvp][info[#info]] = val
-	
+	if self.db.char.options.chatChangeAllGroups then
+		for p in pairs(CHATGROUPS) do
+			self.db.char.options[p][self.lastSelectedPvp][info[#info]] = val
+		end
+	else
+		self.db.char.options[self.db.char.options.chatGroup][self.lastSelectedPvp][info[#info]] = val
+	end
+
 end
 
 
@@ -600,24 +715,67 @@ function SAC:GetPvpToggle(info)
 		self.lastSelectedPvp = self.pvpAllList[self.db.char.options.pvp]
 	end
 
-	return self.db.char.options[self.lastSelectedPvp][info[#info]]
+	return self.db.char.options[self.db.char.options.chatGroup][self.lastSelectedPvp][info[#info]]
 	
 end
 
 
 function SAC:SetChatToggle(info, val)
 
-	self.db.char.options[self.db.char.options.chatParty][info[#info]] = val
+	if self.db.char.options.chatChangeAllGroups then
+		for p in pairs(CHATGROUPS) do
+			self.db.char.options[p].chatGroups[info[#info]] = val
+		end
+	else
+		self.db.char.options[self.db.char.options.chatGroup].chatGroups[info[#info]] = val
+	end
 	
 end
 
 
 function SAC:GetChatToggle(info)
-		
-	return self.db.char.options[self.db.char.options.chatParty][info[#info]]
+
+	return self.db.char.options[self.db.char.options.chatGroup].chatGroups[info[#info]]
 	
 end
 
+function SAC:SetChatGroup(info, val)
+	
+	self.db.char.options[info[#info]] = val
+
+	local name = ""
+	if self.db.char.options.chatChangeAllGroups then
+		name = "All"
+	else
+		name = CHATGROUPS[self.db.char.options.chatGroup]
+	end
+
+	self.Options.args.auras.name = "Auras - " .. name
+	self.Options.args.spells.name = "Spells - " .. name
+	self.Options.args.pvp.name = "PVP - " .. name
+
+
+end
+
+
+function SAC:SetWithGroup(info, val)
+
+	if self.db.char.options.chatChangeAllGroups then
+		for p in (CHATGROUPS) do
+			self.db.char.options[p][info[#info]] = val
+		end
+	else
+		self.db.char.options[self.db.char.options.chatGroup][info[#info]] = val
+	end
+	
+end
+
+
+function SAC:GetWithGroup(info)
+		
+	return self.db.char.options[self.db.char.options.chatGroup][info[#info]]
+	
+end
 
 function SAC:Set(info, val)
 

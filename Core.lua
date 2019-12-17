@@ -21,6 +21,8 @@ SAC.pvpItemIDs = EnemyItems
 SAC.pvpItemNames = {}
 SAC.pvpAllList = {}
 
+SAC.currentGroup = "SOLO"
+
 function SAC:OnInitialize()
 
 	-- Setup SavedVariables
@@ -41,6 +43,7 @@ function SAC:OnEnable()
 		function() 
 			self:Print("Version", self.addonVersion, "Created By: Pit @ Firemaw-EU")
 			self:Print("Use /sac or /spellannouncer to access options and please report any bugs or feedback at https://www.curseforge.com/wow/addons/spellannouncer-classic")
+			self:Print("|cFFFF6060OBS! With the release of v1.0 all settings has been reset to default. Please read the changelog here. https://www.curseforge.com/wow/addons/spellannouncer-classic/files")
 		end)
 	end
 
@@ -68,17 +71,19 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	--destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, 
 	--arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24)
 	
+	-- Update group status for with settings are used.
+	SAC:GetCurrentGroupStatus()
+
 	-- Only report your own combatlog.
 	-- Casted Spells and auras
 	if CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
 		-- Only show auras if enabled in options (Enable Auras)
-		if self.db.char.options.auraAllEnable then
-			if subevent == "SPELL_AURA_APPLIED" then		
+		if self.db.char.options[self.currentGroup].auraAllEnable then
+			if subevent == "SPELL_AURA_APPLIED" then	
 				for k,v in pairs(self.aurasList) do
 					if v == spellName then
 						-- Check if specific Aura should be announced from options when applied.
-						if self.db.char.options[spellName].announceStart then
-
+						if self.db.char.options[self.currentGroup][spellName].announceStart then
 							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 							
 							if destName == sourceName then
@@ -87,7 +92,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 								self:AnnounceSpell(string.format("%s used -%s- --> %s%s", sourceName, spellName, icon, destName))
 							end
 						end
-						if self.db.char.options[spellName].whisperTarget then
+						if self.db.char.options[self.currentGroup][spellName].whisperTarget then
 							if destName ~= sourceName then
 								if UnitIsPlayer(destName) then
 									self:AnnounceSpell(string.format("%s used -%s-on you!", sourceName, spellName), "WHISPER", destName)
@@ -96,14 +101,13 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 						end
 					end
 				end
-				
 			end
 			
 			if subevent == "SPELL_AURA_REMOVED" then
 				for _,v in pairs(self.aurasList) do
 					if v == spellName then
 						-- Check if specific Aura should be announced from options when removed.
-						if self.db.char.options[spellName].announceEnd then
+						if self.db.char.options[self.currentGroup][spellName].announceEnd then
 						
 							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 							
@@ -119,13 +123,13 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 			end
 		end
 
-		if self.db.char.options.spellAllEnable then
+		if self.db.char.options[self.currentGroup].spellAllEnable then
 			if subevent == "SPELL_CAST_SUCCESS" then
 				--self:Print(spellName)
 				for _,v in pairs(self.spellsList) do
 					if v == spellName then
 						-- Check if resist should be announced for specific spell.
-						if self.db.char.options[spellName].spellAnnounceEnabled then
+						if self.db.char.options[self.currentGroup][spellName].spellAnnounceEnabled then
 							
 							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 							
@@ -134,20 +138,19 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 							else
 								self:AnnounceSpell(string.format("%s used -%s- --> %s%s", sourceName, spellName, icon, destName))
 							end
-						end					
+						end
 					end
 				end
 			end
 		end
 
-		if self.db.char.options.spellAllEnable then
+		if self.db.char.options[self.currentGroup].spellAllEnable then
 			if subevent == "SPELL_MISSED" then
 				if arg15 ~= "ABSORB" then
-					
 					for _,v in pairs(self.spellsList) do
 						if v == spellName then
 							-- Check if resist should be announced for specific spell.
-							if self.db.char.options[spellName].resistAnnounceEnabled then
+							if self.db.char.options[self.currentGroup][spellName].resistAnnounceEnabled then
 							
 								local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 								
@@ -159,7 +162,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 			end
 		end
 		
-		if self.db.char.options.successfulInterrupts then
+		if self.db.char.options[self.currentGroup].successfulInterrupts then
 			if subevent == "SPELL_INTERRUPT" then
 				local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 				
@@ -169,9 +172,9 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	end
 	
 	-- PVP Related Events
-	if self.db.char.options.pvpAllEnable then
+	if self.db.char.options[self.currentGroup].pvpAllEnable then
 
-		if self.db.char.options.pvpFriendly == "SELF" then
+		if self.db.char.options[self.currentGroup].pvpFriendly == "SELF" then
 			
 			-- Check if an spell is performed towards you
 			if destName == SAC.playerName then
@@ -183,7 +186,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 
 						if v == spellName then
 							-- Check if PVP spell should be announced.
-							if self.db.char.options[spellName].Enable then
+							if self.db.char.options[self.currentGroup][spellName].Enable then
 
 								local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 									
@@ -194,18 +197,14 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 					end
 				end
 			end
-		elseif self.db.char.options.pvpFriendly == "PARTY" then
-			
+		elseif self.db.char.options[self.currentGroup].pvpFriendly == "PARTY" then
 			if UnitInParty(destName) then
-				
 				if subevent == "SPELL_CAST_SUCCESS" then
-					
 					--self:Print(spellName)
 					for k,v in pairs(self.pvpSpellNames) do
-
 						if v == spellName then
 							-- Check if PVP spell should be announced.
-							if self.db.char.options[spellName].Enable then
+							if self.db.char.options[self.currentGroup][spellName].Enable then
 
 								local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 									
@@ -216,7 +215,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 					end
 				end	
 			end
-		elseif self.db.char.options.pvpFriendly == "ALLIES" then
+		elseif self.db.char.options[self.currentGroup].pvpFriendly == "ALLIES" then
 			
 			local destIsFriendly = SAC:IsFriendly(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
 			
@@ -228,7 +227,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 
 						if v == spellName then
 							-- Check if PVP spell should be announced.
-							if self.db.char.options[spellName].Enable then
+							if self.db.char.options[self.currentGroup][spellName].Enable then
 
 								local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 									
@@ -241,7 +240,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 			end
 		end
 
-		if self.db.char.options.pvpEnemy == "TARGET" then
+		if self.db.char.options[self.currentGroup].pvpEnemy == "TARGET" then
 			-- Check if your target is performing a spell.
 			if UnitName("target") == sourceName then
 
@@ -261,7 +260,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 				end
 			end
 
-		elseif self.db.char.options.pvpEnemy == "ENEMIES" then
+		elseif self.db.char.options[self.currentGroup].pvpEnemy == "ENEMIES" then
 
 			local sourceIsHostile = SAC:IsHostile(bit.band(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
 			--local destIsFriendly = SAC:IsFriendly(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
@@ -327,14 +326,15 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 		return
 	end
 	
+	local currentGroup = SAC:GetCurrentGroupStatus()
+
 	-- Solo
-	if (not IsInGroup()) and (not IsInRaid()) then
-		for k,v in pairs(self.db.char.options.SOLO) do
+	if self.currentGroup == "SOLO" then
+		for k,v in pairs(self.db.char.options.SOLO.chatGroups) do
 			if v then
 				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
-				local chatType = string.upper(string.gsub(k, "chat", ""))
-				if chatType ~= "SYSTEM" then
-					SendChatMessage(msg, chatType)
+				if k ~= "system" then
+					SendChatMessage(msg, k)
 				else
 					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
@@ -344,13 +344,12 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 		end
 	end
 	-- Party
-	if (IsInGroup()) and (not IsInRaid()) then
-		for k,v in pairs(self.db.char.options.PARTY) do
+	if self.currentGroup == "PARTY" then
+		for k,v in pairs(self.db.char.options.PARTY.chatGroups) do
 			if v then
 				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
-				local chatType = string.upper(string.gsub(k, "chat", ""))
-				if chatType ~= "SYSTEM" then
-					SendChatMessage(msg, chatType)
+				if k ~= "system" then
+					SendChatMessage(msg, k)
 				else
 					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
@@ -360,13 +359,31 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 		end
 	end
 	-- Raid
-	if (IsInGroup()) and (IsInRaid()) then
-		for k,v in pairs(self.db.char.options.RAID) do
+	if self.currentGroup == "RAID" then
+		for k,v in pairs(self.db.char.options.RAID.chatGroups) do
 			if v then
 				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
-				local chatType = string.upper(string.gsub(k, "chat", ""))
-				if chatType ~= "SYSTEM" then
-					SendChatMessage(msg, chatType)
+				if k ~= "system" then
+					SendChatMessage(msg, k)
+				else
+					-- Remove raid icons from system messages since this is not supported.
+					local sysMsg = string.gsub(msg, "{RT%w}", "")
+					SAC:Print(sysMsg)
+				end
+			end
+		end
+	end
+	-- Battlegrounds
+	if self.currentGroup == "BATTLEGROUNDS" then
+		for k,v in pairs(self.db.char.options.BATTLEGROUNDS.chatGroups) do
+			if v then
+				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
+				if k ~= "system" then
+					if k == "battleground" then
+						SendChatMessage(msg, "INSTANCE_CHAT")
+					else
+						SendChatMessage(msg, k)
+					end
 				else
 					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
@@ -415,6 +432,20 @@ function SAC:PopulateSpellsLists()
 	end
 end
 
+function SAC:GetCurrentGroupStatus()
+
+	if (not IsInGroup()) and (not IsInRaid()) then
+		self.currentGroup = "SOLO"
+	elseif (IsInGroup()) and (not IsInRaid()) then
+		self.currentGroup = "PARTY"
+	elseif (IsInGroup()) and (IsInRaid()) then
+		self.currentGroup = "RAID"
+	end
+	local bgSlot = UnitInBattleground("player")
+	if bgSlot ~= nil then
+		self.currentGroup = "BATTLEGROUNDS"
+	end
+end
 
 -----------
 -- Enums --

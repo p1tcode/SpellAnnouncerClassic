@@ -29,6 +29,8 @@ Auras =
 	},
 	["PRIEST"] =
 	{
+		17,		-- Power Word: Shield test!
+		139,	-- Renew Test!
 		10060,	-- Power Infusion
 	},
 	["ROGUE"] =
@@ -107,6 +109,7 @@ Spells =
 	},
 	["WARLOCK"] = 
 	{
+		710,	-- Banish
 		6215,	-- Fear
 		17928,	-- Howl of Terror
 		17926,	-- Death Coil
