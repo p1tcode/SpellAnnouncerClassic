@@ -29,6 +29,8 @@ Auras =
 	},
 	["PRIEST"] =
 	{
+		17,		-- Power Word: Shield test!
+		139,	-- Renew Test!
 		10060,	-- Power Infusion
 	},
 	["ROGUE"] =
