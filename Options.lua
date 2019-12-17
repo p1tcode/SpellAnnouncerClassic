@@ -349,7 +349,9 @@ end
 function SAC:InitializeDefaultSettings()
 
 	if self.db.char.reset == nil or self.db.char.reset == false then
-		self.db.char.options = nil
+		if self.db.char.options ~= nil then
+			self.db.char.options = nil
+		end
 		self.db.char.reset = true
 	end
 
