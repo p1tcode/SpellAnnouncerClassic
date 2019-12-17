@@ -43,6 +43,7 @@ function SAC:OnEnable()
 		function() 
 			self:Print("Version", self.addonVersion, "Created By: Pit @ Firemaw-EU")
 			self:Print("Use /sac or /spellannouncer to access options and please report any bugs or feedback at https://www.curseforge.com/wow/addons/spellannouncer-classic")
+			self:Print("|cFFFF6060OBS! With the release of v1.0 all settings has been reset to default. Please read the changelog here. https://www.curseforge.com/wow/addons/spellannouncer-classic/files")
 		end)
 	end
 
