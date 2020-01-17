@@ -43,7 +43,7 @@ function SAC:OnEnable()
 		function() 
 			self:Print("Version", self.addonVersion, "Created By: Pit @ Firemaw-EU")
 			self:Print("Use /sac or /spellannouncer to access options and please report any bugs or feedback at https://www.curseforge.com/wow/addons/spellannouncer-classic")
-			self:Print("|cFFFF6060OBS! With the release of v1.0 all settings has been reset to default. Please read the changelog here. https://www.curseforge.com/wow/addons/spellannouncer-classic/files")
+			--self:Print("|cFFFF6060OBS! With the release of v1.0 all settings has been reset to default. Please read the changelog here. https://www.curseforge.com/wow/addons/spellannouncer-classic/files")
 		end)
 	end
 
@@ -78,6 +78,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	-- Casted Spells and auras
 	if CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
 		-- Only show auras if enabled in options (Enable Auras)
+
 		if self.db.char.options[self.currentGroup].auraAllEnable then
 			if subevent == "SPELL_AURA_APPLIED" then	
 				for k,v in pairs(self.aurasList) do
@@ -326,7 +327,6 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 		return
 	end
 	
-	local currentGroup = SAC:GetCurrentGroupStatus()
 
 	-- Solo
 	if self.currentGroup == "SOLO" then
@@ -334,7 +334,11 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 			if v then
 				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
 				if k ~= "system" then
-					SendChatMessage(msg, k)
+					if k == "say" or k == "yell" then
+						if IsInInstance() then
+							SendChatMessage(msg, k)
+						end
+					end
 				else
 					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
@@ -378,11 +382,16 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 		for k,v in pairs(self.db.char.options.BATTLEGROUNDS.chatGroups) do
 			if v then
 				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
+				--SAC:Print("BG chat group: ", v)
 				if k ~= "system" then
 					if k == "battleground" then
 						SendChatMessage(msg, "INSTANCE_CHAT")
 					else
-						SendChatMessage(msg, k)
+						if k == "say" or k == "yell" then
+							if IsInInstance() then
+								SendChatMessage(msg, k)
+							end
+						end
 					end
 				else
 					-- Remove raid icons from system messages since this is not supported.

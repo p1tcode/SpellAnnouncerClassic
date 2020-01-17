@@ -81,6 +81,7 @@ Spells =
 	{
 		2139,	-- Counter Spell
 		10230,	-- Frost Nova
+		28272,	-- Polymorph
 	},
 	["PALADIN"] =
 	{
@@ -129,6 +130,7 @@ Spells =
 EnemySpells =
 {
 	6770,	-- Sap
+	28272,	-- Polymorph
 }
 EnemyItems =
 {
