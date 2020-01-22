@@ -76,7 +76,7 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 
 	-- Only report your own combatlog.
 	-- Casted Spells and auras
-	if CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
+	if CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) or CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MY_PET) then
 		-- Only show auras if enabled in options (Enable Auras)
 
 		if self.db.char.options[self.currentGroup].auraAllEnable then
@@ -134,10 +134,22 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 							
 							local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 							
-							if destName == sourceName or destName == nil then
-								self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
-							else
-								self:AnnounceSpell(string.format("%s used -%s- --> %s%s", sourceName, spellName, icon, destName))
+							if CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
+
+								if destName == sourceName or destName == nil then
+									self:AnnounceSpell(string.format("%s used -%s-", sourceName, spellName))
+								else
+									self:AnnounceSpell(string.format("%s used -%s- --> %s%s", sourceName, spellName, icon, destName))
+								end
+
+							elseif CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MY_PET) then
+
+								if destName == sourceName or destName == nil then
+									self:AnnounceSpell(string.format("%s's pet used -%s-", SAC.playerName, spellName))
+								else
+									self:AnnounceSpell(string.format("%s's pet used -%s- --> %s%s", SAC.playerName, spellName, icon, destName))
+								end
+
 							end
 						end
 					end
@@ -155,7 +167,16 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 							
 								local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 								
-								self:AnnounceSpell(string.format("%s: %s failed -%s- --> %s%s!", arg15, sourceName, spellName, icon, destName))
+								
+								if CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
+
+									self:AnnounceSpell(string.format("%s: %s failed -%s- --> %s%s!", arg15, sourceName, spellName, icon, destName))
+
+								elseif CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MY_PET) then
+
+									self:AnnounceSpell(string.format("%s: %s's pet failed -%s- --> %s%s!", arg15, SAC.playerName, spellName, icon, destName))
+
+								end
 							end
 						end
 					end
@@ -166,8 +187,16 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 		if self.db.char.options[self.currentGroup].successfulInterrupts then
 			if subevent == "SPELL_INTERRUPT" then
 				local icon = raidIcons[bit.band(destRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+				if CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MINE) then
+
+					self:AnnounceSpell(string.format("INTERRUPT: %s -%s- %s%s --> %s!", sourceName, spellName, icon, destName, arg16))
+
+				elseif CombatLog_Object_IsA(sourceFlags, COMBATLOG_FILTER_MY_PET) then
+
+					self:AnnounceSpell(string.format("INTERRUPT: %s's pet -%s- %s%s --> %s!", SAC.playerName, spellName, icon, destName, arg16))
+
+				end
 				
-				self:AnnounceSpell(string.format("INTERRUPT: %s -%s- %s%s --> %s!", sourceName, spellName, icon, destName, arg16))
 			end
 		end
 	end
