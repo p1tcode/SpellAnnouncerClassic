@@ -52,7 +52,6 @@ Auras =
 	{
 		871,	-- Shield Wall
 		12975,	-- Last Stand
-		--2565,	-- Shield Block
 		12328,	-- Death Wish
 		1719,	-- Recklessness
 		20230,	-- Retaliation
@@ -76,6 +75,7 @@ Spells =
 	{
 		5384,	-- Feign Death
 		19801,	-- Tranquilizing Shot
+		2649,	-- Growl - Pet
 	},
 	["MAGE"] =
 	{
@@ -114,6 +114,10 @@ Spells =
 		6215,	-- Fear
 		17928,	-- Howl of Terror
 		17926,	-- Death Coil
+		3716,	-- Torment - Pet
+		19244,	-- Spell Lock - Pet
+		6358,	-- Seduction - Pet
+		19505,	-- Devour Magic - Pet
 	},
 	["WARRIOR"] =
 	{
