@@ -12,12 +12,14 @@ Auras =
 	["HUNTER"] =
 	{
 		19263,	-- Deterrence
+
 	},
 	["MAGE"] =
 	{
 		11958,	-- Ice Block
 		12042,	-- Arcane Power
 		--12043,-- Presence Of Mind
+		19574,	-- Bestial Wrath - Pet
 	},
 	["PALADIN"] =
 	{
@@ -47,6 +49,7 @@ Auras =
 	{
 		19443,	-- Sacrifice
 		20765,	-- Soulstone Ressurection
+		--6307,	-- Blood Pakt - Pet
 	},
 	["WARRIOR"] =
 	{
@@ -76,6 +79,7 @@ Spells =
 		5384,	-- Feign Death
 		19801,	-- Tranquilizing Shot
 		2649,	-- Growl - Pet
+		19577,	-- Intimidation - Pet
 	},
 	["MAGE"] =
 	{
