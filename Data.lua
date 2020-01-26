@@ -73,6 +73,8 @@ Spells =
 		9853,	-- Entangling root
 		20748,	-- Rebirth
 		5211,	-- Bash
+		9907,	-- Faerie Fire
+		17392,	-- Faerie Fire (Feral)
 	},
 	["HUNTER"] =
 	{
