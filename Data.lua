@@ -28,6 +28,7 @@ Auras =
 		10278,	-- Blessing of Protection
 		19752,	-- Divine Intervention
 		1020,	-- Divine Shield
+		6940,	-- Blessing of Sacrifice
 	},
 	["PRIEST"] =
 	{
@@ -75,6 +76,7 @@ Spells =
 		5211,	-- Bash
 		9907,	-- Faerie Fire
 		17392,	-- Faerie Fire (Feral)
+		2637,	-- Hibernate
 	},
 	["HUNTER"] =
 	{
@@ -92,6 +94,7 @@ Spells =
 	["PALADIN"] =
 	{
 		10308,	-- Hammer of Justice
+		633,	-- Lay on Hands
 	},
 	["PRIEST"] =
 	{
@@ -141,6 +144,8 @@ EnemySpells =
 {
 	6770,	-- Sap
 	28272,	-- Polymorph
+	676,	-- Disarm
+	1499,	-- Freezing Trap
 }
 EnemyItems =
 {
