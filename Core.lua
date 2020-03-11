@@ -66,10 +66,12 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, 
 	arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24  = CombatLogGetCurrentEventInfo()
 	
-	--SAC:Print(eventName, subevent, spellName, spellId, sourceName, " - ", arg16, arg15, destName)
-	--SAC:Print(subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, 
-	--destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, 
-	--arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24)
+	--[[ if sourceName == SAC.playerName then
+		SAC:Print(eventName, subevent, spellName, spellId, sourceName, " - ", arg16, arg15, destName)
+		SAC:Print(subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, 
+		destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, 
+		arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24)
+	end ]]
 	
 	-- Update group status for with settings are used.
 	SAC:GetCurrentGroupStatus()
@@ -229,118 +231,123 @@ function SAC:COMBAT_LOG_EVENT_UNFILTERED(eventName)
 	
 	-- PVP Related Events
 	if self.db.char.options[self.currentGroup].pvpAllEnable then
+		
+		local sourceIsPlayer = SAC:IsPlayer(bit.band(sourceFlags, COMBATLOG_OBJECT_TYPE_PLAYER))
 
-		if self.db.char.options[self.currentGroup].pvpFriendly == "SELF" then
-			
-			-- Check if an spell is performed towards you
-			if destName == SAC.playerName then
-			
-				if subevent == "SPELL_CAST_SUCCESS" then
-					
-					--self:Print(spellName)
-					for k,v in pairs(self.pvpSpellNames) do
+		if  sourceIsPlayer then
 
-						if v == spellName then
-							-- Check if PVP spell should be announced.
-							if self.db.char.options[self.currentGroup][spellName].Enable then
+			if self.db.char.options[self.currentGroup].pvpFriendly == "SELF" then
+				
+				-- Check if an spell is performed towards you
+				if destName == SAC.playerName then
+				
+					if subevent == "SPELL_CAST_SUCCESS" then
+						
+						--self:Print(spellName)
+						for k,v in pairs(self.pvpSpellNames) do
 
+							if v == spellName then
+								-- Check if PVP spell should be announced.
+								if self.db.char.options[self.currentGroup][spellName].Enable then
+
+									local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+										
+									self:AnnounceSpell(string.format("PVP: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+
+								end
+							end
+						end
+					end
+				end
+			elseif self.db.char.options[self.currentGroup].pvpFriendly == "PARTY" then
+				if UnitInParty(destName) then
+					if subevent == "SPELL_CAST_SUCCESS" then
+						--self:Print(spellName)
+						for k,v in pairs(self.pvpSpellNames) do
+							if v == spellName then
+								-- Check if PVP spell should be announced.
+								if self.db.char.options[self.currentGroup][spellName].Enable then
+
+									local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+										
+									self:AnnounceSpell(string.format("PVP: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+
+								end
+							end
+						end
+					end	
+				end
+			elseif self.db.char.options[self.currentGroup].pvpFriendly == "ALLIES" then
+				
+				local destIsFriendly = SAC:IsFriendly(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
+				
+				if destIsFriendly then
+					if subevent == "SPELL_CAST_SUCCESS" then
+						
+						--self:Print(spellName)
+						for k,v in pairs(self.pvpSpellNames) do
+
+							if v == spellName then
+								-- Check if PVP spell should be announced.
+								if self.db.char.options[self.currentGroup][spellName].Enable then
+
+									local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
+										
+									self:AnnounceSpell(string.format("PVP: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+
+								end
+							end
+						end
+					end	
+				end
+			end
+
+			if self.db.char.options[self.currentGroup].pvpEnemy == "TARGET" then
+				-- Check if your target is performing a spell.
+				if UnitName("target") == sourceName then
+
+					if subevent == "SPELL_CAST_SUCCESS" then
+								
+						--self:Print(spellName)
+						for k,v in pairs(self.pvpItemNames) do
+
+							if k == spellName then
+								-- Check if resist should be announced for specific spell.
 								local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 									
-								self:AnnounceSpell(string.format("PVP: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+								self:AnnounceSpell(string.format("PVP: %s%s -%s-", icon, sourceName, v))
 
 							end
 						end
 					end
 				end
-			end
-		elseif self.db.char.options[self.currentGroup].pvpFriendly == "PARTY" then
-			if UnitInParty(destName) then
-				if subevent == "SPELL_CAST_SUCCESS" then
-					--self:Print(spellName)
-					for k,v in pairs(self.pvpSpellNames) do
-						if v == spellName then
-							-- Check if PVP spell should be announced.
-							if self.db.char.options[self.currentGroup][spellName].Enable then
 
+			elseif self.db.char.options[self.currentGroup].pvpEnemy == "ENEMIES" then
+
+				local sourceIsHostile = SAC:IsHostile(bit.band(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
+				--local destIsFriendly = SAC:IsFriendly(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
+				--local destIsHostile = SAC:IsHostile(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
+				--local sourceIsFriendly = SAC:IsFriendly(bit.band(sourceFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
+				
+				--if sourceIsHostile then	print("HOSTILE: ", sourceName, spellName) end
+				--if destIsHostile then print("HOSTILE TARGETED: ", destName, spellName) end
+				--if sourceIsFriendly then print("FRIENDLY: ", sourceName, spellName) end
+				--if destIsFriendly then print("FRIENDLY TARGETED: ", destName, spellName) end
+
+				if sourceIsHostile then
+
+					if subevent == "SPELL_CAST_SUCCESS" then
+								
+						--self:Print(spellName)
+						for k,v in pairs(self.pvpItemNames) do
+
+							if k == spellName then
+								-- Check if resist should be announced for specific spell.
 								local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
 									
-								self:AnnounceSpell(string.format("PVP: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
+								self:AnnounceSpell(string.format("PVP: %s%s -%s-", icon, sourceName, v))
 
 							end
-						end
-					end
-				end	
-			end
-		elseif self.db.char.options[self.currentGroup].pvpFriendly == "ALLIES" then
-			
-			local destIsFriendly = SAC:IsFriendly(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
-			
-			if destIsFriendly then
-				if subevent == "SPELL_CAST_SUCCESS" then
-					
-					--self:Print(spellName)
-					for k,v in pairs(self.pvpSpellNames) do
-
-						if v == spellName then
-							-- Check if PVP spell should be announced.
-							if self.db.char.options[self.currentGroup][spellName].Enable then
-
-								local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
-									
-								self:AnnounceSpell(string.format("PVP: %s%s -%s- --> %s", icon, sourceName, spellName, destName))
-
-							end
-						end
-					end
-				end	
-			end
-		end
-
-		if self.db.char.options[self.currentGroup].pvpEnemy == "TARGET" then
-			-- Check if your target is performing a spell.
-			if UnitName("target") == sourceName then
-
-				if subevent == "SPELL_CAST_SUCCESS" then
-							
-					--self:Print(spellName)
-					for k,v in pairs(self.pvpItemNames) do
-
-						if k == spellName then
-							-- Check if resist should be announced for specific spell.
-							local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
-								
-							self:AnnounceSpell(string.format("PVP: %s%s -%s-", icon, sourceName, v))
-
-						end
-					end
-				end
-			end
-
-		elseif self.db.char.options[self.currentGroup].pvpEnemy == "ENEMIES" then
-
-			local sourceIsHostile = SAC:IsHostile(bit.band(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
-			--local destIsFriendly = SAC:IsFriendly(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
-			--local destIsHostile = SAC:IsHostile(bit.band(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
-			--local sourceIsFriendly = SAC:IsFriendly(bit.band(sourceFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY))
-			
-			--if sourceIsHostile then	print("HOSTILE: ", sourceName, spellName) end
-			--if destIsHostile then print("HOSTILE TARGETED: ", destName, spellName) end
-			--if sourceIsFriendly then print("FRIENDLY: ", sourceName, spellName) end
-			--if destIsFriendly then print("FRIENDLY TARGETED: ", destName, spellName) end
-
-			if sourceIsHostile then
-
-				if subevent == "SPELL_CAST_SUCCESS" then
-							
-					--self:Print(spellName)
-					for k,v in pairs(self.pvpItemNames) do
-
-						if k == spellName then
-							-- Check if resist should be announced for specific spell.
-							local icon = raidIcons[bit.band(sourceRaidFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)] or ""
-								
-							self:AnnounceSpell(string.format("PVP: %s%s -%s-", icon, sourceName, v))
-
 						end
 					end
 				end
@@ -368,6 +375,15 @@ function SAC:IsHostile(flag)
 		return false
 	end
 end
+
+function SAC:IsPlayer(flag)
+	if flag == COMBATLOG_OBJECT_TYPE_PLAYER then
+		return true
+	else
+		return false
+	end
+end
+
 
 function SAC:AnnounceSpell(msg, channelType, channelName)
 
