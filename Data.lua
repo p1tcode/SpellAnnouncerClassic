@@ -45,6 +45,7 @@ Auras =
 	["SHAMAN"] =
 	{
 		10432,	-- Lightning Shield
+		16190,	-- Mana-Tide Totem
 	},
 	["WARLOCK"] =
 	{
@@ -77,6 +78,8 @@ Spells =
 		9907,	-- Faerie Fire
 		17392,	-- Faerie Fire (Feral)
 		2637,	-- Hibernate
+		6807,	-- Maul
+
 	},
 	["HUNTER"] =
 	{
