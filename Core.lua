@@ -424,7 +424,11 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 			if v then
 				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
 				if k ~= "system" then
-					SendChatMessage(msg, k)
+					if k == "say" or k == "yell" then
+						if IsInInstance() then
+							SendChatMessage(msg, k)
+						end
+					end
 				else
 					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
@@ -439,7 +443,11 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 			if v then
 				-- Change the k string to something SendChatMessage understands (removes "chat" and makes rest upper case).
 				if k ~= "system" then
-					SendChatMessage(msg, k)
+					if k == "say" or k == "yell" then
+						if IsInInstance() then
+							SendChatMessage(msg, k)
+						end
+					end
 				else
 					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
