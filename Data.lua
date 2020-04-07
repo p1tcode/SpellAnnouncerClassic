@@ -45,7 +45,6 @@ Auras =
 	["SHAMAN"] =
 	{
 		10432,	-- Lightning Shield
-		16190,	-- Mana-Tide Totem
 	},
 	["WARLOCK"] =
 	{
@@ -119,6 +118,7 @@ Spells =
 	["SHAMAN"] =
 	{
 		10414,	-- Earth Shock
+		16190,	-- Mana-Tide Totem
 	},
 	["WARLOCK"] = 
 	{
