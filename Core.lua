@@ -389,12 +389,16 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 
 	-- Whispers
 	if channelType == "WHISPER" then
-		SendChatMessage(msg, channelType, _, channelName)
+		if channelName == "" then
+			SAC:Print("Error: You have to set a name to who you want to whisper!")
+		else
+			SendChatMessage(msg, channelType, nil, channelName)
+		end
 		return
 	end
 	-- Channel
 	if channelType == "CHANNEL" then
-		SendChatMessage(msg, channelType, _, channelName)
+		SendChatMessage(msg, channelType, nil, channelName)
 		return
 	end
 	
