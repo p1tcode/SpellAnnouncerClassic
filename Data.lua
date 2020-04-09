@@ -140,6 +140,7 @@ Spells =
 		6552,	-- Pummel
 		72,		-- Shield Bash
 		5246,	-- Intimidating Shout
+		12809,	-- Concussion Blow
 	},
 }
 
