@@ -435,6 +435,13 @@ function SAC:InitializeDefaultSettings()
 			end
 		end
 
+		-- Disables Whisper if for all spells in the "SOLO" group
+		if p == "SOLO" then
+			for k,v in ipairs(self.aurasList) do
+				self.db.char.options[p][v].isSelfBuff = true
+			end
+		end
+
 		-- Spells --	
 		if self.db.char.options[p].spellAllEnable == nil then
 			self.db.char.options[p].spellAllEnable = true
