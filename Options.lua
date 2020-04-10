@@ -1,7 +1,7 @@
 local config = LibStub("AceConfig-3.0")
 local dialog = LibStub("AceConfigDialog-3.0")
 
-local CHATCHANNELS = { ["BATTLEGROUND"] = "Battleground", ["RAID"] = "Raid", ["PARTY"] = "Party", ["YELL"] = "Yell", ["SAY"] = "Say", ["SYSTEM MESSAGE"] = "System Message" }
+local CHATCHANNELS = { ["BATTLEGROUND"] = "Battleground", ["RAID"] = "Raid", ["RAID_WARNING"] = "Raid_Warning", ["PARTY"] = "Party", ["YELL"] = "Yell", ["SAY"] = "Say", ["SYSTEM MESSAGE"] = "System Message" }
 local CHATGROUPS = { ["BATTLEGROUNDS"] = "Battlegrounds", ["RAID"] = "Raid", ["PARTY"] = "Party", ["SOLO"] = "Solo" }
 local PVPENEMY = { ["TARGET"] = "Target", ["ENEMIES"] = "All nearby enemies" }
 local PVPFRIENDLY = { ["SELF"] = "Yourself", ["PARTY"] = "Party", ["ALLIES"] = "All nearby allies"}
@@ -84,8 +84,17 @@ function SAC:CreateOptions()
 						set = 'SetChatToggle',
 						get = 'GetChatToggle',
 					},
-					party = {
+					raid_warning = {
 						order = 2,
+						type = 'toggle',
+						name = "/rw",
+						disabled = 'ChatRaidDisableCheck',
+						hidden = 'ChatRaidDisableCheck',
+						set = 'SetChatToggle',
+						get = 'GetChatToggle',
+					},
+					party = {
+						order = 3,
 						type = 'toggle',
 						name = "/party",
 						disabled = 'ChatPartyDisableCheck',
@@ -94,7 +103,7 @@ function SAC:CreateOptions()
 						get = 'GetChatToggle',
 					},
 					yell = {
-						order = 3,
+						order = 4,
 						type = 'toggle',
 						name = "/yell",
 						--disabled = true,
@@ -102,7 +111,7 @@ function SAC:CreateOptions()
 						get = 'GetChatToggle',
 					},
 					say = {
-						order = 4,
+						order = 5,
 						type = 'toggle',
 						name = "/say",
 						--disabled = true,
@@ -110,7 +119,7 @@ function SAC:CreateOptions()
 						get = 'GetChatToggle',
 					},
 					system = {
-						order = 5,
+						order = 6,
 						type = 'toggle',
 						name = "System Message",
 						set = 'SetChatToggle',
@@ -394,6 +403,7 @@ function SAC:InitializeDefaultSettings()
 			end
 			if p == "RAID" then
 				self.db.char.options[p].chatGroups.raid = true
+				self.db.char.options[p].chatGroups.raid_warning = false
 				self.db.char.options[p].chatGroups.party = false
 				self.db.char.options[p].chatGroups.yell = false
 				self.db.char.options[p].chatGroups.say = false
