@@ -32,7 +32,7 @@ Auras =
 	},
 	["PRIEST"] =
 	{
-		--17,		-- Power Word: Shield test!
+		--17,	-- Power Word: Shield test!
 		--139,	-- Renew Test!
 		10060,	-- Power Infusion
 	},
@@ -45,7 +45,6 @@ Auras =
 	["SHAMAN"] =
 	{
 		10432,	-- Lightning Shield
-		16190,	-- Mana-Tide Totem
 	},
 	["WARLOCK"] =
 	{
@@ -119,6 +118,7 @@ Spells =
 	["SHAMAN"] =
 	{
 		10414,	-- Earth Shock
+		16190,	-- Mana-Tide Totem
 	},
 	["WARLOCK"] = 
 	{
@@ -140,6 +140,7 @@ Spells =
 		6552,	-- Pummel
 		72,		-- Shield Bash
 		5246,	-- Intimidating Shout
+		12809,	-- Concussion Blow
 	},
 }
 

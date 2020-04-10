@@ -389,12 +389,12 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 
 	-- Whispers
 	if channelType == "WHISPER" then
-		SendChatMessage(msg, channelType, _, channelName)
+		SendChatMessage(msg, channelType, GetDefaultLanguage("player"), channelName)		
 		return
 	end
 	-- Channel
 	if channelType == "CHANNEL" then
-		SendChatMessage(msg, channelType, _, channelName)
+		SendChatMessage(msg, channelType, GetDefaultLanguage("player"), channelName)
 		return
 	end
 	
@@ -409,7 +409,10 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 						if IsInInstance() then
 							SendChatMessage(msg, k)
 						end
+					else
+						SendChatMessage(msg, k)
 					end
+
 				else
 					-- Remove raid icons from system messages since this is not supported.
 					local sysMsg = string.gsub(msg, "{RT%w}", "")
@@ -428,6 +431,8 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 						if IsInInstance() then
 							SendChatMessage(msg, k)
 						end
+					else
+						SendChatMessage(msg, k)
 					end
 				else
 					-- Remove raid icons from system messages since this is not supported.
@@ -447,6 +452,8 @@ function SAC:AnnounceSpell(msg, channelType, channelName)
 						if IsInInstance() then
 							SendChatMessage(msg, k)
 						end
+					else
+						SendChatMessage(msg, k)
 					end
 				else
 					-- Remove raid icons from system messages since this is not supported.
