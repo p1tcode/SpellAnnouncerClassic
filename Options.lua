@@ -410,10 +410,10 @@ function SAC:InitializeDefaultSettings()
 				self.db.char.options[p].chatGroups.system = false
 			end
 			if p == "BATTLEGROUNDS" then
-				self.db.char.options[p].chatGroups.battleground = true
+				self.db.char.options[p].chatGroups.battleground = false
 				self.db.char.options[p].chatGroups.yell = false
 				self.db.char.options[p].chatGroups.say = false
-				self.db.char.options[p].chatGroups.system = false
+				self.db.char.options[p].chatGroups.system = true
 			end
 		end
 

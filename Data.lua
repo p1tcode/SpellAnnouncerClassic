@@ -97,6 +97,7 @@ Spells =
 	{
 		10308,	-- Hammer of Justice
 		633,	-- Lay on Hands
+		7328,	-- Redemption
 	},
 	["PRIEST"] =
 	{
@@ -105,6 +106,8 @@ Spells =
 		10953,	-- Mind Soothe
 		10890,	-- Psychic Scream
 		15487,	-- Silence
+		6346,	-- Fear Ward
+		2006,	-- Resurrection
 	},
 	["ROGUE"] =
 	{
@@ -114,11 +117,13 @@ Spells =
 		921,	-- Pick Pocket
 		1769,	-- Kick
 		6770,	-- Sap
+		1776,	-- Gouge
 	},
 	["SHAMAN"] =
 	{
 		10414,	-- Earth Shock
 		16190,	-- Mana-Tide Totem
+		20777,	-- Ancestral Spirit
 	},
 	["WARLOCK"] = 
 	{
