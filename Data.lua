@@ -105,6 +105,7 @@ Spells =
 		10953,	-- Mind Soothe
 		10890,	-- Psychic Scream
 		15487,	-- Silence
+		6346,	-- Fear Ward
 	},
 	["ROGUE"] =
 	{
@@ -114,6 +115,7 @@ Spells =
 		921,	-- Pick Pocket
 		1769,	-- Kick
 		6770,	-- Sap
+		1776,	-- Gouge
 	},
 	["SHAMAN"] =
 	{
