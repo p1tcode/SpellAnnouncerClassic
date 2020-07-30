@@ -1,7 +1,7 @@
-## Interface: 11304
+## Interface: 11305
 ## Title: |cff336699SpellAnnouncer |cffFBB709Classic
 ## Author: Pit @ Firemaw-EU
-## Version: 1.0.12
+## Version: 1.0.13
 
 ## SavedVariables: SpellAnnouncerClassicDB
 
