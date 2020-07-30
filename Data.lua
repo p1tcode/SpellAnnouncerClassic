@@ -59,6 +59,7 @@ Auras =
 		12328,	-- Death Wish
 		1719,	-- Recklessness
 		20230,	-- Retaliation
+		23725,  -- Gift of Life (Lifegiving Gem)
 	},
 }
 
@@ -155,6 +156,8 @@ EnemySpells =
 	28272,	-- Polymorph
 	676,	-- Disarm
 	1499,	-- Freezing Trap
+	122,	-- Frost Nova
+	339,	-- Entangling Roots
 }
 EnemyItems =
 {
